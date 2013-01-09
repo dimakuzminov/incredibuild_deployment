@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Incredibuild Monitoring Windows</title>
+  <script src="../jquery.js"></script>
+  <script src="../processing.js"></script>
+</head>
+<body>
+
+<script type="application/processing" data-processing-target="canvas">
+int progress;
+int slots;
+int slot_height;
+int slot_width;
+int[] err;
+int width;
+int delta_width;
+
+void setup()
+{
+    delta_width = 200;
+    width = delta_width*4;
+    size(width, 600);
+    slots=7;
+    err = new int[7];
+    slot_height=20;
+    slot_width=5;
+    progress=0;
+    smooth();
+    frameRate(1);
+    fontA = loadFont("Arial"); 
+    textFont(fontA); 
+    textSize(slot_height-(slot_height/4));
+}
+
+void draw()
+{
+    background(153);
+    var test_json = $.ajax({
+        url: "slot_manager_report.json",
+        type: "GET",
+        cache: false,
+        async: false,
+        dataType: "json",
+        error: function(data){
+        },
+        success: function(data){
+            data=jQuery.parseJSON(data);
+        }
+    });
+    //console.log(test_json.responseText);
+    var data = eval("("+test_json.responseText+")");
+    if (data) {
+        int tasks = 0;
+        int errors = 0;
+        for(s=0, s_end=data.slot.length; s<s_end; s++) {
+            tasks = tasks+data.slot[s].description[0].tasks;
+            errors = errors+data.slot[s].description[0].errors;
+        }
+        int raw = 1;
+        fill(0, 0, 0);
+        stroke(0, 0, 0);
+        text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
+        if (width < data.global[0].time) {
+            width = data.global[0].time+delta_width;
+            size(width, 600);
+        }
+        fill(0, 0, 255);
+        stroke(0, 0, 255);
+        rect(0, (raw++)*slot_height, data.global[0].time, slot_height/2);
+        int tasks = 0;
+        int errors = 0;
+        for(s=0, s_end=data.slot.length; s<s_end; s++) {
+            fill(0, 0, 0);
+            stroke(0, 0, 0);
+            text( "["+data.slot[s].description[0].hostname+
+            "], slot ID["+data.slot[s].description[0].slot_id+
+            "], ["+data.slot[s].description[0].tasks+
+            "], tasks, ["+data.slot[s].description[0].errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
+            for(t=0, t_end=data.slot[s].tasks.length; t<t_end; t++) {
+                if(data.slot[s].tasks[t].status == 0) {
+                    fill(0, 255, 0);
+                    stroke(0, 255, 0);
+                } else if(data.slot[s].tasks[t].status == 1) {
+                    fill(255, 0, 0);
+                    stroke(255, 0, 0);
+                } else {
+                    fill(0, 0, 255);
+                    stroke(0, 0, 255);
+                }
+                rect( data.slot[s].tasks[t].start, raw*slot_height, data.slot[s].tasks[t].stop-data.slot[s].tasks[t].start, slot_height/2);
+            }
+            raw++;
+        }
+    }
+}
+
+</script>
+</body>
+<canvas id="canvas"></canvas>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Incredibuild Monitoring Windows</title>
+  <script src="../jquery.js"></script>
+  <script src="../processing.js"></script>
+</head>
+<body>
+
+<script type="application/processing" data-processing-target="canvas">
+int progress;
+int slots;
+int slot_height;
+int slot_width;
+int[] err;
+int width;
+int delta_width;
+int first_time;
+
+void setup()
+{
+    delta_width = 200;
+    width = delta_width*2;
+    size(width, 600);
+    slots=7;
+    err = new int[7];
+    slot_height=20;
+    slot_width=5;
+    progress=0;
+    smooth();
+    frameRate(1);
+    fontA = loadFont("Arial"); 
+    textFont(fontA); 
+    textSize(slot_height-(slot_height/4));
+    first_time = 1;
+}
+
+void draw()
+{
+    background(153);
+    progress++;
+    for(int i=0; i<slots; i++) {
+        err[i] = 0;
+        for(int j=0; j<progress;j++) {
+            if ((j % (i+3)) == 0) {
+                fill(255, 0, 0);
+                stroke(255, 0, 0);
+                err[i]++;
+            } else {
+                fill(0, 255, 0);
+                stroke(0, 255, 0);
+            }
+            rect(j*slot_width, (i*slot_height*2)+slot_height, slot_width, slot_height/2);
+        }
+        fill(100);
+        stroke(100);
+        text("Slot["+i+"] tasks["+j+"] errors["+err[i]+"]", 0, i*slot_height*2+slot_height*3/4);
+    }
+    if((progress*slot_width)>width) {
+        width=width+100;
+        size(width, 600);
+    }
+    var test_json = $.ajax({
+        url: "test_json.json",
+        type: "GET",
+        async: false,
+        dataType: "json",
+        error: function(data){
+        },
+        success: function(data){
+            data=jQuery.parseJSON(data);
+        }
+    });
+    console.log(test_json.responseText);
+    var data = eval("("+test_json.responseText+")");
+    if (data) {
+        for(s=0, s_end=data.slot.length; s<s_end; s++) {
+            for(p=0, p_end=data.slot[s].color.length; p<p_end; p++) {
+                fill(data.slot[s].color[p].r, data.slot[s].color[p].g, data.slot[s].color[p].b);
+                stroke(data.slot[s].color[p].r, data.slot[s].color[p].g, data.slot[s].color[p].b);
+                rect(data.slot[s].rect[p].x, data.slot[s].rect[p].y, data.slot[s].rect[p].width, data.slot[s].rect[p].height);
+            }
+        }
+    }
+}
+
+</script>
+</body>
+<canvas id="canvas"></canvas>
+</html>
