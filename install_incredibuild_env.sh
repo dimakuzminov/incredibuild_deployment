@@ -59,12 +59,17 @@ function copy_system_files() {
     sudo sh -c "cp -fr $grid_domain_file /etc/grid_server_domain.conf"
 }
 
+function copy_web_files() {
+    sudo sh -c "cp -fr web /home/$user"
+}
+
 check_conditions
 install_linux_packages
 setup_nfs
 enable_cachefs
 set_user_env
 copy_system_files
+copy_web_files
 
 # end of script
 echo "FINISHED"
