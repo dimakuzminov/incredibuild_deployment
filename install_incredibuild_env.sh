@@ -3,6 +3,17 @@ password=xoreax
 user=incredibuild
 virtualization_script=/etc/init.d/incredibuild_virtualization.sh
 tmp_virtualization_script=/tmp/virt.back
+grid_domain_file=$1
+script_name=$0
+
+function check_conditions() {
+    if [ -z "$grid_domain_file" ];
+    then
+        echo "Error, missing parameter";
+        echo "please run $script_name grid_server_domain.conf";
+        exit
+    fi
+}
 
 function install_linux_packages() {
     sudo apt-get install -y \
@@ -45,8 +56,10 @@ y
 function copy_system_files() {
     sudo sh -c "cp -fr etc/* /etc/"
     sudo sh -c "cp -fr bin/* /bin/"
+    sudo sh -c "cp -fr $grid_domain_file /etc/grid_server_domain.conf"
 }
 
+check_conditions
 install_linux_packages
 setup_nfs
 enable_cachefs
