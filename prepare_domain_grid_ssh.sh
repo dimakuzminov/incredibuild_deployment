@@ -24,6 +24,7 @@ function create_domain_keys {
         host=$(echo $LINE | awk '{print $1;}')
         sudo mkdir -p $SSH_ROOT_DIR/ids/$host
         sudo cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa 
+        sudo chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
         sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub"  
     done
 }
