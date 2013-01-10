@@ -5,6 +5,7 @@ virtualization_script=/etc/init.d/incredibuild_virtualization.sh
 tmp_virtualization_script=/tmp/virt.back
 grid_domain_file=$1
 script_name=$0
+http_repository=/var/www/incredibuild
 
 function check_conditions() {
     if [ -z "$grid_domain_file" ];
@@ -18,6 +19,7 @@ function check_conditions() {
 function install_linux_packages() {
     sudo apt-get install -y \
         nfs-kernel-server cachefilesd libssh-dev boa
+    sudo sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
 }
 
 function enable_cachefs() {
@@ -60,7 +62,8 @@ function copy_system_files() {
 }
 
 function copy_web_files() {
-    sudo sh -c "cp -fr web/* /var/www/incredibuild/"
+    sudo mkdir $http_repository 
+    sudo sh -c "cp -fr web/* $http_repository/"
 }
 
 check_conditions
