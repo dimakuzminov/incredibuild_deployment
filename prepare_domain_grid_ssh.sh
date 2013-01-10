@@ -16,6 +16,7 @@ function create_config_file() {
     sudo sh -c "echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config"
     sudo sh -c "echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config"
     sudo sh -c "echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config"
+    sudo rm $SSH_ROOT_DIR/known_hosts
 }
 
 function create_domain_keys { 
