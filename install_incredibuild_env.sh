@@ -62,7 +62,7 @@ function copy_system_files() {
 }
 
 function copy_web_files() {
-    sudo mkdir $http_repository 
+    sudo mkdir -p $http_repository 
     sudo sh -c "cp -fr web/* $http_repository/"
 }
 
