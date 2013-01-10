@@ -1,0 +1,35 @@
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/bin/GridServer
+NAME=GridServer
+DESC="Incredibuild Initiator Service"
+ARGS="-j /var/www/incredibuild/monitor"
+test -x $DAEMON || exit 0
+
+set -e
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: $NAME"
+	start-stop-daemon --start --quiet --background --exec "${DAEMON}" -- ${ARGS}
+	echo "."
+	;;
+  stop)
+	echo -n "Stopping $DESC: $NAME"
+	start-stop-daemon --stop --quiet --oknodo --exec "${DAEMON}" -- ${ARGS}
+	echo "."
+	;;
+  restart)
+	echo -n "Restarting $DESC: $NAME... "
+	start-stop-daemon --stop --quiet --oknodo --exec "${DAEMON}" -- ${ARGS}
+	start-stop-daemon --start --quiet --background --exec "${DAEMON}" -- ${ARGS}
+	echo "done."
+        ;;
+  *)
+	N=/etc/init.d/$NAME
+	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $N {start|stop|restart}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
