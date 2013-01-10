@@ -17,7 +17,7 @@ function check_conditions() {
 
 function install_linux_packages() {
     sudo apt-get install -y \
-        nfs-kernel-server cachefilesd
+        nfs-kernel-server cachefilesd libssh-dev boa
 }
 
 function enable_cachefs() {
@@ -60,7 +60,7 @@ function copy_system_files() {
 }
 
 function copy_web_files() {
-    sudo sh -c "cp -fr web /home/$user"
+    sudo sh -c "cp -fr web/* /var/www/incredibuild/"
 }
 
 check_conditions
