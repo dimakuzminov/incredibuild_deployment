@@ -67,7 +67,10 @@ function copy_web_files() {
 }
 
 function restart_services() {
-    sudo service rsyslog restart
+    sudo service rsyslog stop
+    sudo service rsyslog start
+    sudo service boa stop
+    sudo service boa start
 }
 
 check_conditions
