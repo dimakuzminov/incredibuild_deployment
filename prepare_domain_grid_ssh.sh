@@ -28,6 +28,7 @@ function create_domain_keys {
         sudo chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
         sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub"  
     done
+    sudo cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
 }
 
 create_ssh_root

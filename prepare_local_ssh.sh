@@ -20,7 +20,6 @@ function create_config_file() {
 
 function create_domain_keys { 
     sudo mkdir -p $SSH_ROOT_DIR
-    sudo cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
     sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys"
 }
 
