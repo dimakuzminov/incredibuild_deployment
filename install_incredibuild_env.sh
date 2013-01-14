@@ -66,6 +66,10 @@ function copy_web_files() {
     sudo sh -c "cp -fr web/* $http_repository/"
 }
 
+function restart_services() {
+    sudo service rsyslog restart
+}
+
 check_conditions
 install_linux_packages
 setup_nfs
@@ -73,6 +77,7 @@ enable_cachefs
 set_user_env
 copy_system_files
 copy_web_files
+restart_services
 
 # end of script
 echo "FINISHED"

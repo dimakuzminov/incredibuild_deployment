@@ -6,7 +6,7 @@ function generate_files() {
     echo "Generating files for tests"
     for (( i=1; $i<=$files_number; i=$i+1 )); do
         echo "test $i";
-        dd if=/dev/urandom of=rand_test$i bs=512 count=1024;
+        dd if=/dev/urandom of=rand_test$i bs=1024 count=1024;
     done
 }
 
