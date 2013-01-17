@@ -1,6 +1,6 @@
 #!/bin/bash
 OUT_PUT=$1
-number_of_tasks=100
+number_of_tasks=2
 input_file=dummy_test
 user_id=$(whoami)
 
@@ -22,9 +22,9 @@ function restart_services() {
 }
 
 function submit_tasks() {
-    dd if=/dev/zero of=$input_file bs=1024 count=1024
+    dd if=/dev/zero of="$input_file"1 bs=1024 count=1024
     for (( i=1; $i<=$number_of_tasks; i=$i+1 )); do
-        XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s $input_file -d test_dummy$i\"";
+        XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s \"$input_file\"\"$i\" -d test_dummy$i\"";
     done
     sleep 1
 }
@@ -32,7 +32,7 @@ function submit_tasks() {
 function print_test_results() {
     cat << EOF > $OUT_PUT
 #####################################################################################################################################
-Test 00001 – tasks are queued on local machine and executed on remote machine, stdOut returned back to initiator machine
+Test 00002 – tasks are queued on local machine and executed on remote machine. stdErr is returned back to initiator machine
     - There are more than 10 tasks buffered in queue. Check Queue increasing before tasks starts
     - "adding command to queue" - is identifying that tasks dropped to queue
     - For each tasks, use "test_dummy[number]" to identify life time of tasks.
