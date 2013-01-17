@@ -56,9 +56,9 @@ function print_test_results() {
 #####################################################################################################################################
 Test 00004 – Initiator machine create Slot Virtualization with Cache mechanisms 
     - This test present cache mechanism effectiveness
-    - First we generate 100 random files, that drop cache from Slot (BuildMachine) remote machine
-    - Then we run 100 tasks, it should require maximum time
-    - After that we run other 4 times test, each test with 100 tasks
+    - First we generate $files_number random files, that drop cache from Slot (BuildMachine) remote machine
+    - Then we run test number 1 - $files_number tasks, it should require maximum time
+    - After that we run other 4 times test, each test with $files_number tasks
         - These 4 addtional tests should show that time is reduced till it becomes stable
 
 #####################################################################################################################################
@@ -73,7 +73,7 @@ TEST_CACHE_TABLE:
 EOF
     l=1
     echo "----------------------------------------------------------------" >> $OUT_PUT;
-    echo "task number $l execution time, new code. cache shouldn't be used" >> $OUT_PUT;
+    echo "test number $l (each test $files_number tasks execution time, new code. cache shouldn't be used" >> $OUT_PUT;
     cat $timer_result$l >> $OUT_PUT;
     for (( l=2; $l<=$tests_number; l=$l+1 )); do
         echo "----------------------------------------------------------------" >> $OUT_PUT;
