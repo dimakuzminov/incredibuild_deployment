@@ -1,7 +1,6 @@
 #!/bin/bash
 OUT_PUT=$1
 input_file=I_Dont_Exists
-user_id=$(whoami)
 
 function test_arg_conditions() {
     if [[ -z $OUT_PUT ]];

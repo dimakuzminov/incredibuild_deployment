@@ -2,7 +2,6 @@
 OUT_PUT=$1
 number_of_tasks=100
 input_file=dummy_test
-user_id=$(whoami)
 
 function test_arg_conditions() {
     if [[ -z $OUT_PUT ]];
