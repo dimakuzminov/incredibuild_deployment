@@ -24,6 +24,8 @@ function submit_tasks() {
     XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s $input_file -d test_dummy \"";
     XgSubmit -c PROCESS_A -r "-c PROCESS_C -r \" -s $input_file -d test_dummy \"";
     sleep 1
+    XgWait
+    sleep 1
 }
 
 function print_test_results() {
@@ -44,7 +46,6 @@ This test should present that remote execution returns STDOUT
 
 Incredibuild LOG:
 EOF
-    XgWait
     sudo sh -c "cat /var/log/incredibuild >> $OUT_PUT"
 }
 

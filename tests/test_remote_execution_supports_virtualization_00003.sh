@@ -24,6 +24,8 @@ function submit_tasks() {
     XgSubmit -c "mount > mount.txt" -r "";
     XgSubmit -c "cat /proc/mounts > remote_mount.txt" -r "";
     sleep 1
+    XgWait
+    sleep 1
 }
 
 function print_test_results() {
@@ -73,7 +75,6 @@ EOF
 
 Incredibuild LOG:
 EOF
-    XgWait
     sudo sh -c "cat /var/log/incredibuild >> $OUT_PUT"
 
 }

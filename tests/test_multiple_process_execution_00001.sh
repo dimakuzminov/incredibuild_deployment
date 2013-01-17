@@ -27,6 +27,7 @@ function submit_tasks() {
         XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s $input_file -d test_dummy$i\"";
     done
     sleep 1
+    XgWait
 }
 
 function print_test_results() {
@@ -46,7 +47,6 @@ Critical:
 
 Incredibuild LOG:
 EOF
-    XgWait
     sudo sh -c "cat /var/log/incredibuild >> $OUT_PUT"
 }
 
