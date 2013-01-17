@@ -1,7 +1,6 @@
 #!/bin/bash
 OUT_PUT=$1
-number_of_tasks=2
-input_file=dummy_test
+input_file=I_Dont_Exists
 user_id=$(whoami)
 
 function test_arg_conditions() {
@@ -22,10 +21,8 @@ function restart_services() {
 }
 
 function submit_tasks() {
-    dd if=/dev/zero of="$input_file"1 bs=1024 count=1024
-    for (( i=1; $i<=$number_of_tasks; i=$i+1 )); do
-        XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s \"$input_file\"\"$i\" -d test_dummy$i\"";
-    done
+    XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s $input_file -d test_dummy \"";
+    XgSubmit -c PROCESS_A -r "-c PROCESS_C -r \" -s $input_file -d test_dummy \"";
     sleep 1
 }
 
@@ -33,15 +30,16 @@ function print_test_results() {
     cat << EOF > $OUT_PUT
 #####################################################################################################################################
 Test 00002 – tasks are queued on local machine and executed on remote machine. stdErr is returned back to initiator machine
-    - There are more than 10 tasks buffered in queue. Check Queue increasing before tasks starts
-    - "adding command to queue" - is identifying that tasks dropped to queue
-    - For each tasks, use "test_dummy[number]" to identify life time of tasks.
-    - Use Slot ID to follow life time of BuildMachine
+    - In this test we are running two wrong scripts
+    - XgSubmit -c PROCESS_A -r "-c PROCESS_B -r \" -s $input_file -d test_dummy \"";
+        - The error should be seen on Process_B execution, since file $input_file doesn't exist
+        - It is not STDERR for us since Process_A catch this event, we olny see it as STD_OUT
+    - XgSubmit -c PROCESS_A -r "-c PROCESS_C -r \" -s $input_file -d test_dummy \"";
+        - This one is STD_ERR should be catch by us, because Process_A cannot catch it, it is system error. It is generated
+            because Process_C doesn't exist
 This test should present that remote execution returns STDOUT
-    - use Slot ID[number] to follow process output
-Critical:
-    - all tests run only with ssh session
-    - log file tested only on Initiator machine
+    - [ERROR] message, as submessage for missing file. STD_OUT
+    - [ERROR] message in first column, for missing process (system halt). STD_ERR
 #####################################################################################################################################
 
 Incredibuild LOG:
