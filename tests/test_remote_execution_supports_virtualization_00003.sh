@@ -30,11 +30,22 @@ function print_test_results() {
     cat << EOF > $OUT_PUT
 #####################################################################################################################################
 Test 00003 – Initiator machine create Slot (Helper Machine) Virtualization on remote machine
-    - In this test we run remote mount to ensure that virtualization is correct
-    - We also using UnionFs infrustructure, we access to machine physical mount to present NFS and folder system
-    - We present
-        - Mount on remote machine. It shows physical
-        - Mount on remote machine from virtualization. It hides nfs connection and shows our machine nfs
+    - We use our remote executio nto access remote machine (Build Machine)
+    - We use following remote commands:
+        - XgSubmit -c "mount > mount.txt" -r "";
+            - This command shows remote machine partition table.
+            - It will not show NFS connections. We use it to prove that virtualiztion is done and Build Machine Doesn't know that it
+                exists remotely on network
+            - NAME FOR TABLE - VIRTUALIZATION_LOCAL_MOUNT_TABLE
+        - XgSubmit -c "cat /proc/mounts > remote_mount.txt" -r "";
+            - This command use UnionFs system
+            - We access /proc that is primary access local resources on remote machine
+            - We present all NFS connections for each Initiator machine that is using this Build Machine
+            - The line of NFS that shows in first column / root folder is our virtualiztion point for our Initiator Machine
+                - from left you can find what Initiator Machine ask for this Slot (session) virtualization
+            - NAME FOR TABLE - LOCAL_MOUNT_TABLE
+            
+
 #####################################################################################################################################
 
 EOF
@@ -43,9 +54,7 @@ EOF
 
 
 #####################################################################################################################################
-Mount on remote machine:
-    - Initiator machine ip could be found in mount "nfs" lines
-    - Initiator machine tree could be found in same line
+LOCAL_MOUNT_TABLE:
 
 EOF
     cat remote_mount.txt | grep nfs >> $OUT_PUT
@@ -53,9 +62,7 @@ EOF
 
 
 #####################################################################################################################################
-Mount on remote machine from virtualization:
-    - Full mount list
-    - Please notice we don't see nfs sections, our virtualization is full
+VIRTUALIZATION_LOCAL_MOUNT_TABLE:
 
 EOF
     cat mount.txt >> $OUT_PUT
