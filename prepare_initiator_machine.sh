@@ -94,6 +94,7 @@ function create_config_file() {
 }
 
 function create_domain_keys { 
+    sudo chmod 0600 $PERM_FILE 
     cat $FILENAME | while read LINE
     do
         host=$(echo $LINE | awk '{print $1;}')
