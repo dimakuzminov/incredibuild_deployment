@@ -1,12 +1,22 @@
 #!/bin/bash
-files_number=$1
-tests_number=$2
+file_size=$1
+files_number=$2
+tests_number=$3
+
+function test_arg_conditions() {
+    if [[ -z $file_size  || -z $files_number || -z $tests_number ]];
+    then
+        echo "please use $0 [file size in megabytes] [files number to generate] [test repeat number]";
+        exit -1;
+    fi
+}
 
 function generate_files() {
+    let size=$file_size*1024
     echo "Generating files for tests"
     for (( i=1; $i<=$files_number; i=$i+1 )); do
         echo "test $i";
-        dd if=/dev/urandom of=rand_test$i bs=1024 count=1024;
+        dd if=/dev/urandom of=rand_test$i bs=1024 count=$size;
     done
 }
 
@@ -23,6 +33,7 @@ function delay() {
     sleep 10;
 }
 
+test_arg_conditions
 echo "Genreating files for tests"
 generate_files
 echo "Run fresh test"

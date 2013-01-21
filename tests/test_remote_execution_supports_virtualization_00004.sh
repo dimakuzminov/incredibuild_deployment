@@ -1,13 +1,14 @@
 #!/bin/bash
-OUT_PUT=$1
-files_number=100
+file_size=$1
+files_number=$2
+OUT_PUT=$2
 timer_result=timer_result
 tests_number=5
 
 function test_arg_conditions() {
-    if [[ -z $OUT_PUT ]];
+    if [[ -z $file_size || -z $files_number || -z $OUT_PUT ]];
     then
-        echo "please use $0 [results_out_put_file]";
+        echo "please use $0 [file size for test in megabytes] [number of test files to generate] [results output file]";
         exit -1;
     fi
 }
@@ -28,10 +29,11 @@ function restart_services() {
 }
 
 function generate_files() {
+    let size=$file_size*1024
     echo "Generating files for tests"
     for (( i=1; $i<=$files_number; i=$i+1 )); do
         echo "creating file  rand_test$i ...";
-        dd if=/dev/urandom of=rand_test$i bs=1024 count=1024;
+        dd if=/dev/urandom of=rand_test$i bs=1024 count=$size;
     done
 }
 
