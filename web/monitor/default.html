@@ -32,6 +32,7 @@ void setup()
     fontA = loadFont("Arial"); 
     textFont(fontA); 
     textSize(slot_height-(slot_height/4));
+    maximum_monitor_time = 16384
 }
 
 void draw()
@@ -63,8 +64,16 @@ void draw()
         stroke(0, 0, 0);
         text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
         if (width < data.global[0].time) {
-            width = data.global[0].time+delta_width;
-            size(width, 600);
+            if ((data.global[0].time+delta_width) < maximum_monitor_time) {
+                width = data.global[0].time+delta_width;
+                size(width, 600);
+            } else {
+                fill(128, 0, 0);
+                error_msg_size=slot_height;
+                textSize(error_msg_size);
+                text( "The entire work is too big to present!!! Currently, please restart incredibuild service", 0, error_msg_size);
+                textSize(slot_height-(slot_height/4));
+            }
         }
         fill(0, 0, 255);
         stroke(0, 0, 255);
