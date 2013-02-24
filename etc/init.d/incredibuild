@@ -19,10 +19,13 @@ case "$1" in
 	echo "."
 	;;
   restart)
-	echo -n "Restarting $DESC: $NAME... "
+	echo -n "Stopping $DESC: $NAME"
 	start-stop-daemon --stop --quiet --oknodo --exec "${DAEMON}" -- ${ARGS}
+	echo "."
+    sleep 5
+	echo -n "Starting $DESC: $NAME"
 	start-stop-daemon --start --quiet --background --exec "${DAEMON}" -- ${ARGS}
-	echo "done."
+	echo "."
         ;;
   *)
 	N=/etc/init.d/$NAME
