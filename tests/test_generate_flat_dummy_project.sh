@@ -20,7 +20,7 @@ function create_project() {
 CPPSOURCES := \$(shell ls *.cpp 2>/dev/null)
 OBJECTS := \$(CPPSOURCES:.cpp=.o)
 DEPFILES := \$(OBJECTS:%.o=.%.d)
-TARGET ?= libdima_test.so
+TARGET ?= $project_name.so
 
 CPPFLAGS += -g -fPIC 
 LDFLAGS += -g -lstdc++ -ldl -shared -Wl,-Bsymbolic
@@ -37,8 +37,7 @@ clean:
 DF=\$(*F)
 
 %.o : %.cpp
-	g++ \$(CPPFLAGS) -c \$*.cpp
-	g++ -MM \$(CPPFLAGS) \$*.cpp > \$*.d 
+	g++ \$(CPPFLAGS) -MMD -c \$*.cpp
 
 -include \$(DEPFILES)
 EOF
@@ -84,7 +83,10 @@ function generate_profile_file() {
 <Profile FormatVersion="1">
   <Tools>
     <Tool Filename="make" AllowIntercept="true" />
+    <Tool Filename="g++" AllowRemote="true" ArgumentsExclude="-o" />
     <Tool Filename="g++" AllowRemote="true" ArgumentsExclude="-o"/>
+    <Tool Filename="cc1plus" AllowRemote="true" ArgumentsExclude="-o"/>
+    <Tool Filename="as" AllowRemote="true" ArgumentsExclude="-o"/>
   </Tools>
 </Profile>
 EOF
