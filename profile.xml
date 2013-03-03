@@ -12,5 +12,6 @@
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="assembler" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="/dev/null" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="missing-syscalls" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="lang-asm" />
   </Tools>
 </Profile>
