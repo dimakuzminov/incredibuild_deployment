@@ -9,9 +9,19 @@
     <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="assembler" />
     <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="/dev/null" />
     <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="missing-syscalls" />
+    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="scripts" />
+    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="print-file-name" />
+    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="/boot/" />
+    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="kallsyms" />
+    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude=".mod.o" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="assembler" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="/dev/null" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="missing-syscalls" />
     <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="lang-asm" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="scripts" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="print-file-name" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="/boot/" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="kallsyms" />
+    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude=".mod.o" />
   </Tools>
 </Profile>
