@@ -19,12 +19,12 @@ int delta_width;
 void setup()
 {
     delta_width = 200;
-    y_margin = 2;
     width = delta_width*4;
-    size(width, 600);
-    slots=7;
-    err = new int[7];
     slot_height=20;
+    slots = 3;
+    height = (slots+2)*slot_height*2; 
+    size(width, height);
+    err = new int[7];
     slot_width=5;
     progress=0;
     smooth();
@@ -32,7 +32,6 @@ void setup()
     fontA = loadFont("Arial"); 
     textFont(fontA); 
     textSize(slot_height-(slot_height/4));
-    maximum_monitor_time = 16384
 }
 
 void draw()
@@ -64,16 +63,13 @@ void draw()
         stroke(0, 0, 0);
         text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
         if (width < data.global[0].time) {
-            if ((data.global[0].time+delta_width) < maximum_monitor_time) {
-                width = data.global[0].time+delta_width;
-                size(width, 600);
-            } else {
-                fill(128, 0, 0);
-                error_msg_size=slot_height;
-                textSize(error_msg_size);
-                text( "The entire work is too big to present!!! Currently, please restart incredibuild service", 0, error_msg_size);
-                textSize(slot_height-(slot_height/4));
-            }
+            width = data.global[0].time+delta_width;
+            size(width, height);
+        }
+        if (slots < data.slot.length) {
+            slots = data.slot.length;
+            height = (slots+2)*slot_height*2; 
+            size(width, height);
         }
         fill(0, 0, 255);
         stroke(0, 0, 255);
@@ -99,8 +95,6 @@ void draw()
                     stroke(0, 0, 255);
                 }
                 rect( data.slot[s].tasks[t].start, raw*slot_height, data.slot[s].tasks[t].stop-data.slot[s].tasks[t].start, slot_height/2);
-                stroke(128, 128, 128);
-                line( data.slot[s].tasks[t].start, raw*slot_height+y_margin, data.slot[s].tasks[t].start, raw*slot_height+slot_height/2-y_margin);
             }
             raw++;
         }
