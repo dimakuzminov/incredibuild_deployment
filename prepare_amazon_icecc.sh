@@ -28,6 +28,7 @@ function generate_hostname_local_dns() {
 function install_icecc_package() {
     echo "prepare icecc machine $1"
     scp -i ./linux.pem $2 ubuntu@$1:./
+    scp -i ./linux.pem env_icecc.sh ubuntu@$1:./
     echo "yes
     "| ssh -i ./linux.pem ubuntu@$1 ./$2
 }
