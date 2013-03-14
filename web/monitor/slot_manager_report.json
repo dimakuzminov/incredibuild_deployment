@@ -1,33 +1,3 @@
-{ "global": [ { "time":161 } ],
+{ "global": [ { "time":2238744 } ],
   "slot": [
-{ "description": [
-{ "hostname":"dmitry-VirtualBox-1.local", "slot_id":0, "tasks":0, "errors":0 }
-],
-"tasks": [
-]
-},
-{ "description": [
-{ "hostname":"dmitry-VirtualBox-1.local", "slot_id":1, "tasks":0, "errors":0 }
-],
-"tasks": [
-]
-},
-{ "description": [
-{ "hostname":"dmitry-VirtualBox-2.local", "slot_id":2, "tasks":0, "errors":0 }
-],
-"tasks": [
-]
-},
-{ "description": [
-{ "hostname":"dmitry-VirtualBox-2.local", "slot_id":3, "tasks":0, "errors":0 }
-],
-"tasks": [
-]
-},
-{ "description": [
-{ "hostname":"dmitry-VirtualBox-2.local", "slot_id":4, "tasks":0, "errors":0 }
-],
-"tasks": [
-]
-},
 ] }
