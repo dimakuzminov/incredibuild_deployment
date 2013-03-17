@@ -10,3 +10,9 @@ tests/unionfs_proc.txt
 *~
 icecc_prepare.sh
 icecc_prepare_init.sh
+grid_update.sh
+temp.amazon.internaldns.*
+temp.amazon.log.*
+essential_prepare.sh
+JOBS
+JOBS2
