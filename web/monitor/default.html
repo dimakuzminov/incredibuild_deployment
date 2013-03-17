@@ -19,6 +19,7 @@ int delta_width;
 void setup()
 {
     delta_width = 200;
+    y_margin = 2;
     width = delta_width*4;
     slot_height=20;
     slots = 3;
@@ -95,6 +96,8 @@ void draw()
                     stroke(0, 0, 255);
                 }
                 rect( data.slot[s].tasks[t].start, raw*slot_height, data.slot[s].tasks[t].stop-data.slot[s].tasks[t].start, slot_height/2);
+                stroke(128, 128, 128);
+                line( data.slot[s].tasks[t].start, raw*slot_height+y_margin, data.slot[s].tasks[t].start, raw*slot_height+slot_height/2-y_margin);
             }
             raw++;
         }
