@@ -8,3 +8,5 @@ tests/test000*
 tests/unionfs_etc.txt
 tests/unionfs_proc.txt
 *~
+icecc_prepare.sh
+icecc_prepare_init.sh
