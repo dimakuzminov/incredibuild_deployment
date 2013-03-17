@@ -16,7 +16,7 @@ function check_conditions() {
 
 function generate_hostname_local_dns() {
     HOSTNAMELOCALDNS=`echo "yes
-    "| ssh -oStrictHostKeyChecking=no -i ./linux.pem ubuntu@$HOSTNAME dnsdomainname -A`
+    "| ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem ubuntu@$HOSTNAME dnsdomainname -A`
     if [ -z "$HOSTNAMELOCALDNS" ];
     then
         echo "failed to extract internal dns from public dns[$HOSTNAME]";
@@ -27,24 +27,24 @@ function generate_hostname_local_dns() {
 
 function install_icecc_package() {
     echo "prepare icecc machine $1"
-    scp -i ./linux.pem $2 ubuntu@$1:./
-    scp -i ./linux.pem env_icecc.sh ubuntu@$1:./
+    scp -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem $2 ubuntu@$1:./
+    scp -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem env_icecc.sh ubuntu@$1:./
     echo "yes
-    "| ssh -i ./linux.pem ubuntu@$1 ./$2
+    "| ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem ubuntu@$1 ./$2
 }
 
 function install_icecc_machines() {
     rm -fr icecc_prepare.sh 
     cat << EOF > icecc_prepare.sh
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y icecc icecc++ icecc-monitor
+sudo apt-get update -qq
+sudo apt-get install -qq -y icecc icecc++ icecc-monitor
 sudo sed "s;ICECC_SCHEDULER_HOST==\"\";ICECC_SCHEDULER_HOST=\"$HOSTNAMELOCALDNS\";" -i /etc/icecc/icecc.conf
 EOF
     cat << EOF > icecc_prepare_init.sh
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y icecc icecc++ icecc-monitor
+sudo apt-get update -qq
+sudo apt-get install -qq -y icecc icecc++ icecc-monitor
 sudo sed "s;START_ICECC_SCHEDULER=\"false\";START_ICECC_SCHEDULER=\"true\";" -i /etc/default/icecc
 EOF
     chmod 777 icecc_prepare.sh

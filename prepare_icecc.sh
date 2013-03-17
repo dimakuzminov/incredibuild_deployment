@@ -26,9 +26,9 @@ function generate_hostname_local_dns() {
 
 function install_icecc_package() {
     echo "prepare icecc machine $1"
-    sudo scp $2 $1:./
+    sudo scp -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null $2 $1:./
     echo "yes
-    "| sudo ssh $1 ./$2
+    "| sudo ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null $1 ./$2
 }
 
 function install_icecc_machines() {
@@ -36,14 +36,14 @@ function install_icecc_machines() {
     rm -fr icecc_prepare_init.sh 
     cat << EOF > icecc_prepare.sh
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y icecc icecc++ icecc-monitor
+sudo apt-get update -qq
+sudo apt-get install -qq -y icecc icecc++ icecc-monitor
 sudo sed "s;ICECC_SCHEDULER_HOST==\"\";ICECC_SCHEDULER_HOST=\"$HOSTNAMELOCALDNS\";" -i /etc/icecc/icecc.conf
 EOF
     cat << EOF > icecc_prepare_init.sh
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y icecc icecc++ icecc-monitor
+sudo apt-get update -qq
+sudo apt-get install -qq -y icecc icecc++ icecc-monitor
 sudo sed "s;START_ICECC_SCHEDULER=\"false\";START_ICECC_SCHEDULER=\"true\";" -i /etc/default/icecc
 EOF
     chmod 777 icecc_prepare.sh

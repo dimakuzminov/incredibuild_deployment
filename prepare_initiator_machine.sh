@@ -22,8 +22,8 @@ function check_conditions() {
 }
 
 function install_linux_packages() {
-    sudo apt-get update
-    sudo apt-get install -y \
+    sudo apt-get update -qq
+    sudo apt-get install -qq -y \
         nfs-kernel-server cachefilesd libssh-dev boa ssh \
         ubuntu-dev-tools
     sudo sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf

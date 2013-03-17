@@ -14,7 +14,7 @@ function check_conditions() {
 
 function write_grid_domain_file() {
     DNS=`echo "yes
-    "| ssh -oStrictHostKeyChecking=no -i ./linux.pem ubuntu@$1 dnsdomainname -A`
+    "| ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem ubuntu@$1 dnsdomainname -A`
     if [ -z "$DNS" ];
     then
         echo "failed to extract internal dns from public dns[$1]";
@@ -36,18 +36,18 @@ function create_domain_keys() {
 
 function install_helper_package() {
     echo "prepare helper machine $1"
-    scp -i ./linux.pem grid_server_domain.conf.$FILENAME ubuntu@$1:./
-    scp -i ./linux.pem essential_prepare.sh ubuntu@$1:./
+    scp -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem grid_server_domain.conf.$FILENAME ubuntu@$1:./
+    scp -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem essential_prepare.sh ubuntu@$1:./
     echo "yes
-    "| ssh -i ./linux.pem ubuntu@$1 ./essential_prepare.sh
+    "| ssh -oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -i ./linux.pem ubuntu@$1 ./essential_prepare.sh
 }
 
 function install_helper_machines() {
     rm -fr essential_prepare.sh 
     cat << EOF > essential_prepare.sh
 #!/bin/bash
-sudo apt-get update
-sudo apt-get install -y git
+sudo apt-get update -qq
+sudo apt-get install -qq -y git
 git clone http://github.com/dimakuzminov/incredibuild_deployment
 pushd incredibuild_deployment
 git pull
