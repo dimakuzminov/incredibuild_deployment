@@ -1,7 +1,6 @@
 #!/bin/bash
 PROJECT_DIR=$(pwd)
 FILENAME=$1
-PERM_FILE=$PROJECT_DIR/linux.pem
 HOSTNAMELOCALDNS=""
 
 function check_conditions() {
@@ -49,12 +48,17 @@ function umount_list() {
 
 #umount current
 mount | grep -w proc | grep -w tmp > tmp_mounted_proc.list
+mount | grep -w dev | grep -w tmp > tmp_mounted_dev.list
 mount | grep -w nfs | grep -w tmp > tmp_mounted_init_machines.list
 umount_list tmp_mounted_proc.list
+umount_list tmp_mounted_dev.list
 umount_list tmp_mounted_init_machines.list
 
 #update system
+rm -fr incredibuild_deployment
+git clone http://github.com/dimakuzminov/incredibuild_deployment
 pushd incredibuild_deployment
+git pull
 tar xf ../incredibuild_deployment.tar.bz2
 ./prepare_helper_machine.sh $FILENAME
 popd
