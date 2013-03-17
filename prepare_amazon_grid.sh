@@ -33,7 +33,7 @@ function write_grid_domain_file() {
         echo "failed to extract internal dns from public dns[$PUBLICDNS]" >> $LOG_FILE;
     else
         echo "extracted internal dns[$DNS] from public dns[$PUBLICDNS]" >> $LOG_FILE;
-        echo "$DNS 2" > temp.amazon.internaldns.$1;
+        echo "$DNS 1" > temp.amazon.internaldns.$1;
     fi
     echo "Finish exctracting internal DNS from $1"
 }
