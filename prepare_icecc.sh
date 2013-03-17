@@ -33,6 +33,7 @@ function install_icecc_package() {
 
 function install_icecc_machines() {
     rm -fr icecc_prepare.sh 
+    rm -fr icecc_prepare_init.sh 
     cat << EOF > icecc_prepare.sh
 #!/bin/bash
 sudo apt-get update
@@ -46,6 +47,7 @@ sudo apt-get install -y icecc icecc++ icecc-monitor
 sudo sed "s;START_ICECC_SCHEDULER=\"false\";START_ICECC_SCHEDULER=\"true\";" -i /etc/default/icecc
 EOF
     chmod 777 icecc_prepare.sh
+    chmod 777 icecc_prepare_init.sh
     cat $FILENAME | while read LINE
     do
         host=$(echo $LINE | awk '{print $1;}')
