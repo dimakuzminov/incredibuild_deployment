@@ -76,8 +76,10 @@ function copy_web_files() {
 
 function restart_services() {
     sudo service rsyslog stop
+    sleep 1
     sudo service rsyslog start
     sudo service boa stop
+    sleep 1
     sudo service boa start
 }
 
