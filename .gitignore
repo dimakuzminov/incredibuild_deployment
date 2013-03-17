@@ -17,3 +17,5 @@ essential_prepare.sh
 JOBS
 JOBS2
 incredibuild_deployment.tar.bz2
+HOSTS
+grid_server_domain.conf.amazon.tags
