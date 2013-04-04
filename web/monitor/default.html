@@ -33,6 +33,7 @@ void setup()
     fontA = loadFont("Arial"); 
     textFont(fontA); 
     textSize(slot_height-(slot_height/4));
+    resolution_factor=500;
 }
 
 void draw()
@@ -63,8 +64,9 @@ void draw()
         fill(0, 0, 0);
         stroke(0, 0, 0);
         text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
-        if (width < data.global[0].time) {
-            width = data.global[0].time+delta_width;
+        time = data.global[0].time/resolution_factor;
+        if (width < time) {
+            width = time+delta_width;
             size(width, height);
         }
         if (slots < data.slot.length) {
@@ -74,7 +76,7 @@ void draw()
         }
         fill(0, 0, 255);
         stroke(0, 0, 255);
-        rect(0, (raw++)*slot_height, data.global[0].time, slot_height/2);
+        rect(0, (raw++)*slot_height, time, slot_height/2);
         int tasks = 0;
         int errors = 0;
         for(s=0, s_end=data.slot.length; s<s_end; s++) {
@@ -95,9 +97,11 @@ void draw()
                     fill(0, 0, 255);
                     stroke(0, 0, 255);
                 }
-                rect( data.slot[s].tasks[t].start, raw*slot_height, data.slot[s].tasks[t].stop-data.slot[s].tasks[t].start, slot_height/2);
+                start = data.slot[s].tasks[t].start/resolution_factor;
+                stop = data.slot[s].tasks[t].stop/resolution_factor;
+                rect( start, raw*slot_height, stop-start, slot_height/2);
                 stroke(128, 128, 128);
-                line( data.slot[s].tasks[t].start, raw*slot_height+y_margin, data.slot[s].tasks[t].start, raw*slot_height+slot_height/2-y_margin);
+                line( start, raw*slot_height+y_margin, start, raw*slot_height+slot_height/2-y_margin);
             }
             raw++;
         }
