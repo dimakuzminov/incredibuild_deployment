@@ -50,7 +50,7 @@ function install_distcc_machines() {
     hosts=""
     cat $FILENAME | while read LINE
     do
-        hosts="$(echo $LINE | awk '{print $1;}') $hosts"
+        hosts="$(echo $LINE | awk '{print $1;}'),cpp,lzo $hosts"
         echo $hosts > HOSTS
     done
     hosts=`cat HOSTS`
@@ -58,7 +58,7 @@ function install_distcc_machines() {
 #!/bin/bash
 dpkg --configure -a
 apt-get update -qq
-apt-get install -qq -y distcc
+apt-get install -qq -y distcc distcc-pump g++
 echo "$hosts" > /etc/distcc/hosts
 sed "s;LISTENER=\".*\";LISTENER=\"\";" -i /etc/default/distcc
 sed "s;ALLOWEDNETS=\".*\";ALLOWEDNETS=\"127.0.0.1 10.0.0.0/8 192.168.0.0/16\";" -i /etc/default/distcc
@@ -72,7 +72,7 @@ EOF
 #!/bin/bash
 dpkg --configure -a
 apt-get update -qq
-apt-get install -qq -y distcc
+apt-get install -qq -y distcc distcc-pump g++
 echo "$hosts" > /etc/distcc/hosts
 sed "s;LISTENER=\".*\";LISTENER=\"\";" -i /etc/default/distcc
 sed "s;ALLOWEDNETS=\".*\";ALLOWEDNETS=\"127.0.0.1 10.0.0.0/8 192.168.0.0/16\";" -i /etc/default/distcc
