@@ -2,26 +2,15 @@
 <Profile FormatVersion="1">
   <Tools>
     <Tool Filename="make" AllowIntercept="true" />
-    <Tool Filename="g++" AllowRemote="true" ArgumentsExclude="-o" />
-    <Tool Filename="g++" AllowRemote="true" ArgumentsExclude="-o"/>
-    <Tool Filename="cc1plus" AllowRemote="true" ArgumentsExclude="-o"/>
-    <Tool Filename="as" AllowRemote="true" ArgumentsExclude="-o"/>
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="assembler" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="/dev/null" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="missing-syscalls" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="scripts" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="print-file-name" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="/boot/" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude="kallsyms" />
-    <Tool Filename="gcc" AllowRemote="true" ArgumentsExclude=".mod.o" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="assembler" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="/dev/null" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="missing-syscalls" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="lang-asm" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="scripts" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="print-file-name" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="/boot/" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude="kallsyms" />
-    <Tool Filename="cc1" AllowRemote="true" ArgumentsExclude=".mod.o" />
+    <Tool Filename="gcc" AllowIntercept="true" />
+    <Tool Filename="g++" AllowIntercept="true" />
+    <Tool Filename="c++" AllowIntercept="true" />    
+    <Tool Filename="cc1" AllowRemote="true" />
+    <Tool Filename="cc1plus" AllowRemote="true" />
+    <Tool Filename="as" AllowRemote="true" AllowGrouping="true"/>
+    <Tool Filename="collect" AllowLocal="true" />
+    <Tool Filename="collect2" AllowLocal="true" />
+    <Tool Filename="LD" AllowLocal="true" />
+    <Tool Filename="ld" AllowLocal="true" />    
   </Tools>
 </Profile>
