@@ -36,17 +36,6 @@ void setup()
     resolution_factor=500;
 }
 
-function timeFormat(time)
-{
-    int second = 1000;
-    int minute = 60*second;
-    int hour = 60*minute;
-    int hours = (time-(time%hour))/hour;
-    int minutes = ((time-(time%minute))/minute)%60;
-    int seconds = ((time-(time%second))/second)%60;
-    return hours+"h:"+minutes+"m:"+seconds+"sec";
-}
-
 void draw()
 {
     background(153);
@@ -74,7 +63,7 @@ void draw()
         int raw = 1;
         fill(0, 0, 0);
         stroke(0, 0, 0);
-        text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors  ["+timeFormat(data.global[0].time)+"]", 0, (raw++)*slot_height+slot_height/2);
+        text( "["+data.slot.length+"] Slots, ["+tasks+"] tasks, ["+errors+"] errors", 0, (raw++)*slot_height+slot_height/2);
         time = data.global[0].time/resolution_factor;
         if (width < time) {
             width = time+delta_width;
