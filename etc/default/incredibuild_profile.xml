@@ -2,6 +2,9 @@
 <Profile FormatVersion="1">
     <Tools>
         <Tool Filename="sh" AllowIntercept="true" />
+        <Tool Filename="waf" AllowIntercept="true" />
+        <Tool Filename="python" AllowIntercept="true" />
+        <Tool Filename="cmake" AllowIntercept="true" />
         <Tool Filename="make" AllowIntercept="true" />
         <Tool Filename="gcc" AllowIntercept="true" />
         <Tool Filename="g++" AllowIntercept="true" />
