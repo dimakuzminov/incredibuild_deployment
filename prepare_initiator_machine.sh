@@ -1,16 +1,23 @@
 #!/bin/bash
 password=xoreax
 user=incredibuild
-virtualization_script=/etc/init.d/incredibuild_virtualization.sh
-tmp_virtualization_script=/tmp/virt.back
 grid_domain_file=$1
 script_name=$0
 http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 FILENAME=/etc/grid_server_domain.conf
-USERNAME=root
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
+
+function __wait() {
+    while [ -e /proc/$1 ]
+    do
+        echo -ne "."
+        sleep 1;
+    done
+    echo -ne " done"
+    echo ""
+}
 
 function check_conditions() {
     if [ -z "$grid_domain_file" ];
@@ -22,10 +29,10 @@ function check_conditions() {
 }
 
 function install_linux_packages() {
+    echo -ne "Installing critical linux packages: .."
     sudo apt-get update -qq
     sudo apt-get install -qq -y \
-        nfs-kernel-server cachefilesd libssh-dev boa ssh \
-        ubuntu-dev-tools
+        nfs-kernel-server cachefilesd libssh-dev boa ssh
     sudo sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
 }
 
@@ -63,16 +70,16 @@ y
 }
 
 function copy_system_files() {
-    sudo service incredibuld stop
+    sudo service incredibuild stop
     sudo sh -c "cp -fr etc/* /etc/"
     sudo sh -c "cp -fr bin/* /bin/"
     sudo sh -c "cp -fr usr/* /usr/"
     sudo sh -c "cp -fr $grid_domain_file /etc/grid_server_domain.conf"
-    sudo service incredibuld start
+    sudo service incredibuild start
 }
 
 function copy_web_files() {
-    sudo mkdir -p $http_repository 
+    sudo mkdir -p $http_repository
     sudo sh -c "cp -fr web/* $http_repository/"
 }
 
@@ -100,20 +107,21 @@ function create_config_file() {
 }
 
 function create_domain_keys { 
-    sudo chmod 0600 $PERM_FILE 
+    sudo chmod 0600 $PERM_FILE
     cat $FILENAME | while read LINE
     do
         host=$(echo $LINE | awk '{print $1;}')
         sudo mkdir -p $SSH_ROOT_DIR/ids/$host
-        sudo cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa 
+        sudo cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa
         sudo chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
-        sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub"  
+        sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub"
     done
     sudo cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
 }
 
 check_conditions
-install_linux_packages
+install_linux_packages &
+__wait `jobs -p`
 setup_nfs
 enable_cachefs
 set_user_env
