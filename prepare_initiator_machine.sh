@@ -63,10 +63,12 @@ y
 }
 
 function copy_system_files() {
+    sudo service incredibuld stop
     sudo sh -c "cp -fr etc/* /etc/"
     sudo sh -c "cp -fr bin/* /bin/"
     sudo sh -c "cp -fr usr/* /usr/"
     sudo sh -c "cp -fr $grid_domain_file /etc/grid_server_domain.conf"
+    sudo service incredibuld start
 }
 
 function copy_web_files() {
