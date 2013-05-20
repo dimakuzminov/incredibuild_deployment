@@ -36,6 +36,15 @@ function connect_remote() {
     fi
 }
 
+function verify_remote() {
+    result=$(mount | grep $MACHINE_NAME)
+    if [ -z "$result" ];
+    then
+        echo "Critical error $MACHINE_NAME is not connected, aborting";
+        exit -1
+    fi
+}
+
 function prepare_virtualization() {
     result=$(ls $MACHINE_NAME_ROOT/dev)
     if [ -z "$result" ];
@@ -57,4 +66,5 @@ function prepare_virtualization() {
 
 create_root
 connect_remote
+verify_remote
 prepare_virtualization
