@@ -26,32 +26,41 @@ function check_conditions() {
         echo "please run $script_name grid_server_domain.conf";
         exit
     fi
+    if ! [ $(id -u) = 0 ];
+    then
+        echo "Error, must be run in root mode";
+        echo "please run sudo $script_name grid_server_domain.conf";
+        exit
+    fi
 }
 
 function install_linux_packages() {
     echo -ne "Installing critical linux packages: .."
-    sudo apt-get update -qq
-    sudo apt-get install -qq -y \
+    apt-get update -qq
+    apt-get install -qq -y \
         nfs-kernel-server cachefilesd libssh-dev boa ssh
-    sudo sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
 }
 
 function enable_cachefs() {
-    sudo sed "s;\# RUN;RUN;" -i /etc/default/cachefilesd
+    sed "s;\# RUN;RUN;" -i /etc/default/cachefilesd
 }
 
 function setup_nfs() {
     found=$(grep "/ \*(" /etc/exports)
     if [ -z "$found" ];
     then
-        sudo sh -c 'echo "/ *(rw,sync,no_subtree_check)" >> /etc/exports';
-        sudo exportfs -ra;
+        sh -c 'echo "/ *(rw,sync,no_subtree_check)" >> /etc/exports';
+        exportfs -ra;
     fi
 }
 
 function set_user_env() {
-    sudo deluser $user
-    echo "$password
+    if [ $(grep $user /etc/passwd) ];
+    then
+        echo "user $user already exists, skipping";
+    else
+        echo "$password
 $password
 
 
@@ -59,64 +68,67 @@ $password
 
 
 y
-" | sudo adduser $user
-    sudo adduser $user root
-    sudo adduser $user sudo
-    found=$(sudo grep "$user" /etc/sudoers)
+" | adduser $user;
+        adduser $user root;
+        adduser $user sudo;
+    fi
+    found=$(grep "$user" /etc/sudoers)
     if [ -z "$found" ];
     then
-        sudo sh -c "echo '%$user ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers";
+        echo '%$user ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
+    else
+        echo "user $user already sudo, skipping"
     fi
 }
 
 function copy_system_files() {
-    sudo service incredibuild stop
-    sudo sh -c "cp -fr etc/* /etc/"
-    sudo sh -c "cp -fr bin/* /bin/"
-    sudo sh -c "cp -fr usr/* /usr/"
-    sudo sh -c "cp -fr $grid_domain_file /etc/grid_server_domain.conf"
-    sudo service incredibuild start
+    service incredibuild stop
+    cp -fr etc/* /etc/
+    cp -fr bin/* /bin/
+    cp -fr usr/* /usr/
+    cp -fr $grid_domain_file /etc/grid_server_domain.conf
+    service incredibuild start
 }
 
 function copy_web_files() {
-    sudo mkdir -p $http_repository
-    sudo sh -c "cp -fr web/* $http_repository/"
+    mkdir -p $http_repository
+    cp -fr web/* $http_repository/
 }
 
 function restart_services() {
-    sudo service rsyslog stop
+    service rsyslog stop
     sleep 1
-    sudo service rsyslog start
-    sudo service boa stop
+    service rsyslog start
+    service boa stop
     sleep 1
-    sudo service boa start
+    service boa start
 }
 
 function create_ssh_root() {
-    sudo mkdir -p $SSH_ROOT_DIR
+    mkdir -p $SSH_ROOT_DIR
 }
 
 function create_config_file() {
-    sudo sh -c "echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config"
-    sudo sh -c "echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config"
-    sudo sh -c "echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config"
-    sudo sh -c "echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config"
-    sudo sh -c "echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config"
-    sudo sh -c "echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config"
-    sudo rm -f $SSH_ROOT_DIR/known_hosts
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
+    rm -f $SSH_ROOT_DIR/known_hosts
 }
 
 function create_domain_keys { 
-    sudo chmod 0600 $PERM_FILE
+    chmod 0600 $PERM_FILE
     cat $FILENAME | while read LINE
     do
         host=$(echo $LINE | awk '{print $1;}')
-        sudo mkdir -p $SSH_ROOT_DIR/ids/$host
-        sudo cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa
-        sudo chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
-        sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub"
+        mkdir -p $SSH_ROOT_DIR/ids/$host
+        cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa
+        chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
+        ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub
     done
-    sudo cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
+    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
 }
 
 check_conditions
