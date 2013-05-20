@@ -129,6 +129,9 @@ function create_domain_keys {
         ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub
     done
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
+    chmod 0600 $PERM_FILE 
+    mkdir -p $SSH_ROOT_DIR
+    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
 }
 
 check_conditions
