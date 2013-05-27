@@ -65,6 +65,7 @@ function copy_system_files() {
     cp -fr etc/* /etc/
     cp -fr bin/* /bin/
     cp -fr usr/* /usr/
+    ln -sf /etc/init.d/incredibuild_coordinator /etc/rc5.d/S98incredibuild_coordinator
     if [[ -f $grid_domain_file ]];
     then
         cp -fr $grid_domain_file $DOMAN_SYSTEM_FILENAME;

@@ -87,6 +87,7 @@ function copy_system_files() {
     cp -fr etc/* /etc/
     cp -fr bin/* /bin/
     cp -fr usr/* /usr/
+    ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
     service incredibuild start
 }
 
