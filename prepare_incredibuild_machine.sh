@@ -1,11 +1,9 @@
 #!/bin/bash
 password=xoreax
 user=incredibuild
-grid_domain_file=$1
 script_name=$0
 http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
-FILENAME=/etc/grid_server_domain.conf
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
 
@@ -20,12 +18,6 @@ function __wait() {
 }
 
 function check_conditions() {
-    if [ -z "$grid_domain_file" ];
-    then
-        echo "Error, missing parameter";
-        echo "please run $script_name grid_server_domain.conf";
-        exit
-    fi
     if ! [ $(id -u) = 0 ];
     then
         echo "Error, must be run in root mode";
@@ -86,7 +78,6 @@ function copy_system_files() {
     cp -fr etc/* /etc/
     cp -fr bin/* /bin/
     cp -fr usr/* /usr/
-    cp -fr $grid_domain_file /etc/grid_server_domain.conf
     service incredibuild start
 }
 
@@ -104,33 +95,18 @@ function restart_services() {
     service boa start
 }
 
-function create_ssh_root() {
+function prepare_ssh() {
     mkdir -p $SSH_ROOT_DIR
-}
-
-function create_config_file() {
+    rm -f $SSH_ROOT_DIR/known_hosts
     echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
-    rm -f $SSH_ROOT_DIR/known_hosts
-}
-
-function create_domain_keys { 
     chmod 0600 $PERM_FILE
-    cat $FILENAME | while read LINE
-    do
-        host=$(echo $LINE | awk '{print $1;}')
-        mkdir -p $SSH_ROOT_DIR/ids/$host
-        cp $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa
-        chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
-        ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub
-    done
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
     chmod 0600 $PERM_FILE 
-    mkdir -p $SSH_ROOT_DIR
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
 }
 
@@ -143,12 +119,8 @@ set_user_env
 copy_system_files
 copy_web_files
 restart_services
-
 echo "Set security domain for grid Initiator machine"
-create_ssh_root
-create_config_file
-create_domain_keys
-
+prepare_ssh
 # end of script
 echo "FINISHED"
 exit
