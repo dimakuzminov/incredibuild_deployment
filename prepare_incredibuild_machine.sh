@@ -2,10 +2,13 @@
 password=xoreax
 user=incredibuild
 script_name=$0
+coordinator_machine=$1
 http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
+MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
+MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -18,10 +21,16 @@ function __wait() {
 }
 
 function check_conditions() {
+    if [[ -z $coordinator_machine ]];
+    then
+        echo "Error, must specify coordinator_machine as DNS or IP address";
+        echo "please run sudo $script_name [coordinator_machine_name]";
+        exit
+    fi
     if ! [ $(id -u) = 0 ];
     then
         echo "Error, must be run in root mode";
-        echo "please run sudo $script_name grid_server_domain.conf";
+        echo "please run sudo $script_name [coordinaor_machine_name]";
         exit
     fi
 }
@@ -78,6 +87,7 @@ function copy_system_files() {
     cp -fr etc/* /etc/
     cp -fr bin/* /bin/
     cp -fr usr/* /usr/
+    ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
     service incredibuild start
 }
 
@@ -110,6 +120,26 @@ function prepare_ssh() {
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
 }
 
+function register_machine() {
+    XgRegisterMe -h $coordinator_machine > temp_log
+    status_already_registered=$(grep "$MACHINE_ALREADY_REGISTERED" temp_log)
+    status_registered=$(grep "$MACHINE_REGISTERED" temp_log)
+    if ! [[ -z "$status_already_registered" ]];
+    then
+        echo "local machine is already registered"
+    else
+        if ! [[ -z "$status_registered" ]];
+        then
+            echo "local machine is registered"
+        else
+            echo "!!! Error cannot acccess corectly coordinator machine $coordinator_machine"
+        fi
+    fi
+    cat << EOF > /etc/default/incredibuild
+coordinator = $coordinator_machine
+EOF
+}
+
 check_conditions
 install_linux_packages &
 __wait `jobs -p`
@@ -121,6 +151,7 @@ copy_web_files
 restart_services
 echo "Set security domain for grid Initiator machine"
 prepare_ssh
+register_machine
 # end of script
 echo "FINISHED"
 exit
