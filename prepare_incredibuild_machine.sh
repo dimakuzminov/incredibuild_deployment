@@ -88,7 +88,6 @@ function copy_system_files() {
     cp -fr bin/* /bin/
     cp -fr usr/* /usr/
     ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
-    service incredibuild start
 }
 
 function copy_web_files() {
@@ -98,11 +97,7 @@ function copy_web_files() {
 
 function restart_services() {
     service rsyslog stop
-    sleep 1
-    service rsyslog start
     service boa stop
-    sleep 1
-    service boa start
 }
 
 function prepare_ssh() {
@@ -140,6 +135,12 @@ coordinator = $coordinator_machine
 EOF
 }
 
+function start_services() {
+    service rsyslog start
+    service boa start
+    service incredibuild start
+}
+
 check_conditions
 install_linux_packages &
 __wait `jobs -p`
@@ -152,6 +153,7 @@ restart_services
 echo "Set security domain for grid Initiator machine"
 prepare_ssh
 register_machine
+start_services
 # end of script
 echo "FINISHED"
 exit
