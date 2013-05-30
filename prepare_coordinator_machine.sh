@@ -72,7 +72,6 @@ function copy_system_files() {
     else
         touch $DOMAN_SYSTEM_FILENAME;
     fi
-    service incredibuild_coordinator start
 }
 
 function restart_services() {
@@ -111,6 +110,10 @@ function create_domain_keys {
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
 }
 
+function start_service() {
+    service incredibuild_coordinator start
+}
+
 check_conditions
 install_linux_packages &
 __wait `jobs -p`
@@ -121,6 +124,7 @@ echo "Set security domain for grid Initiator machine"
 create_ssh_root
 create_config_file
 create_domain_keys
+start_service
 # end of script
 echo "FINISHED"
 exit
