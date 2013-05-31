@@ -6,10 +6,13 @@
         <Tool Filename="python" AllowIntercept="true" />
         <Tool Filename="cmake" AllowIntercept="true" />
         <Tool Filename="make" AllowIntercept="true" />
-        <Tool Filename="gcc" AllowIntercept="true" />
-        <Tool Filename="g++" AllowIntercept="true" />
+        <Tool Filename="gcc" AllowRemote="true" />
+        <Tool Filename="g++" AllowRemote="true" />
         <Tool Filename="c++" AllowRemote="true" />
         <Tool Filename="cc1plus" AllowRemote="true" />
         <Tool Filename="cc1" AllowRemote="true" />
+        <Tool Filename="select2" AllowLocal="true" />
+        <Tool Filename="LD" AllowLocal="true" />
+        <Tool Filename="ld" AllowLocal="true" />
     </Tools>
 </Profile>
