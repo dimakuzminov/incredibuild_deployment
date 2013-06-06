@@ -3,29 +3,46 @@ DAEMON=/bin/GridCoordinator
 NAME=GridCoordinator
 DESC="Incredibuild Coordinator Service"
 ARGS="-i /etc/grid_server_domain.conf"
+pidfile=/var/run/incredibuild_coordinator.pid
 test -x $DAEMON || exit 0
 
 set -e
+. /lib/lsb/init-functions
 
 case "$1" in
   start)
 	echo -n "Starting $DESC: $NAME"
-	start-stop-daemon --start --quiet --background --exec "${DAEMON}" -- ${ARGS}
-	echo "."
+	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
 	;;
   stop)
 	echo -n "Stopping $DESC: $NAME"
-	start-stop-daemon --stop --quiet --oknodo --exec "${DAEMON}" -- ${ARGS}
-	echo "."
+	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
 	;;
   restart)
 	echo -n "Stopping $DESC: $NAME"
-	start-stop-daemon --stop --quiet --oknodo --exec "${DAEMON}" -- ${ARGS}
-	echo "."
+	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
     sleep 5
 	echo -n "Starting $DESC: $NAME"
-	start-stop-daemon --start --quiet --background --exec "${DAEMON}" -- ${ARGS}
-	echo "."
+	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
+        ;;
+  status)
+	status_of_proc -p $pidfile $DAEMON $NAME && exit 0 || exit $?
         ;;
   *)
 	N=/etc/init.d/$NAME
