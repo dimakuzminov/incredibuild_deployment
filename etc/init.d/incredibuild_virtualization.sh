@@ -4,7 +4,7 @@ USERNAME=$2
 PASSWORD=$3
 MOUNT_POINTS=$4
 MACHINE_NAME_ROOT=/tmp/$MACHINE_NAME
-CACHE_FS_OPTION="-o fsc,rw,soft,intr,rsize=32768,wsize=32768,udp,noatime"
+CACHE_FS_OPTION="-o fsc,rw,soft,intr,rsize=32768,wsize=32768,noatime"
 
 function create_root() {
     if [[ -d $MACHINE_NAME_ROOT ]];
