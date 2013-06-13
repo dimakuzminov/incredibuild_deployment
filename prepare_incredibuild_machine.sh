@@ -85,9 +85,6 @@ y
 
 function copy_system_files() {
     service incredibuild stop
-#    cp -fr etc/* /etc/
-#    cp -fr bin/* /bin/
-#    cp -fr usr/* /usr/
     cp etc/default/incredibuild_profile.xml         /etc/default/
     cp etc/init.d/clean_incredibuild_log.sh         /etc/init.d/
     cp etc/init.d/incredibuild                      /etc/init.d/
