@@ -9,6 +9,7 @@ SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
+WEB_DIR=/var/www/incredibuild
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -84,9 +85,25 @@ y
 
 function copy_system_files() {
     service incredibuild stop
-    cp -fr etc/* /etc/
-    cp -fr bin/* /bin/
-    cp -fr usr/* /usr/
+#    cp -fr etc/* /etc/
+#    cp -fr bin/* /bin/
+#    cp -fr usr/* /usr/
+    cp etc/default/incredibuild_profile.xml         /etc/default/
+    cp etc/init.d/clean_incredibuild_log.sh         /etc/init.d/
+    cp etc/init.d/incredibuild                      /etc/init.d/
+    cp etc/init.d/incredibuild_ssh_verification.sh  /etc/init.d/
+    cp etc/init.d/incredibuild_virtualization.sh    /etc/init.d/
+    cp etc/rsyslog.d/30-incredibuild.conf           /etc/rsyslog.d/
+    cp bin/GridServer       /bin/
+    cp bin/PROCESS_A        /bin/
+    cp bin/PROCESS_B        /bin/
+    cp bin/SlotStatistics   /bin/
+    cp bin/TestCoordinator  /bin/
+    cp bin/XgConsole        /bin/
+    cp bin/XgRegisterMe     /bin/
+    cp bin/XgSubmit         /bin/
+    cp bin/XgWait           /bin/
+    cp usr/lib/libincredibuildintr.so /usr/lib/
     ln -sf /etc/init.d/incredibuild /etc/rc1.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc2.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild
@@ -131,7 +148,11 @@ function register_machine() {
         then
             echo "local machine is registered"
         else
-            echo "!!! Error cannot acccess corectly coordinator machine $coordinator_machine"
+            echo "!!! Error cannot acccess correctly coordinator machine $coordinator_machine"
+            remove_web
+            remove_user
+            remove_system_files
+            exit 1
         fi
     fi
     cat << EOF > /etc/default/incredibuild
@@ -143,6 +164,35 @@ function start_services() {
     service rsyslog start
     service boa start
     service incredibuild start
+}
+
+function remove_user() {
+    echo "Removing user $user :"
+    userdel $user
+}
+
+function remove_web() {
+    echo "Removing web gui:"
+    rm -vfr $WEB_DIR
+}
+
+function remove_system_files() {
+    rm /etc/default/incredibuild_profile.xml
+    rm /etc/init.d/clean_incredibuild_log.sh
+    rm /etc/init.d/incredibuild
+    rm /etc/init.d/incredibuild_ssh_verification.sh
+    rm /etc/init.d/incredibuild_virtualization.sh
+    rm /etc/rsyslog.d/30-incredibuild.conf
+    rm /bin/GridServer
+    rm /bin/PROCESS_A
+    rm /bin/PROCESS_B
+    rm /bin/SlotStatistics
+    rm /bin/TestCoordinator
+    rm /bin/XgConsole
+    rm /bin/XgRegisterMe
+    rm /bin/XgSubmit
+    rm /bin/XgWait
+    rm /usr/lib/libincredibuildintr.so
 }
 
 check_conditions

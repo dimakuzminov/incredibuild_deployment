@@ -62,9 +62,13 @@ y
 
 function copy_system_files() {
     service incredibuild_coordinator stop
-    cp -fr etc/* /etc/
-    cp -fr bin/* /bin/
-    cp -fr usr/* /usr/
+#    cp -fr etc/* /etc/
+#    cp -fr bin/* /bin/
+#    cp -fr usr/* /usr/
+cp etc/init.d/incredibuild_coordinator          	/etc/init.d/
+cp etc/init.d/incredibuild_ssh_verification.sh          /etc/init.d/
+cp etc/rsyslog.d/30-incredibuild.conf			/etc/rsyslog.d/
+cp bin/GridCoordinator  				/bin/
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc1.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc2.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc3.d/S98incredibuild_coordinator

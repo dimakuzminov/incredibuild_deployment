@@ -5,29 +5,17 @@ PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 WEB_DIR=/var/www/incredibuild
 
-INCREDIBUILD_BINARY_FILES="\
-    /bin/SlotStatistics \
-    /bin/PROCESS_A \
-    /bin/PROCESS_B \
-    /bin/XgSubmit \
-    /bin/GridServer \
-    /bin/XgConsole \
-    /bin/XgWait \
-    /bin/XgRegisterMe \
-    /usr/lib/libincredibuildintr.so"
+INCREDIBUILD_COORDINATOR_BINARY_FILES="\
+    /bin/GridCoordinator \
+	/bin/TestCoordinator"
 
-INCREDIBUILD_SYSTEM_SCRIPTS="\
-    /etc/default/incredibuild_profile.xml \
-    /etc/init.d/incredibuild_ssh_verification.sh \
-    /etc/init.d/clean_incredibuild_log.sh \
-    /etc/init.d/incredibuild_virtualization.sh \
-    /etc/init.d/incredibuild \
-    /etc/rsyslog.d/30-incredibuild.conf \
-    /etc/rc5.d/S99incredibuild \
-    /etc/default/incredibuild"
+INCREDIBUILD_COORDINATOR_SYSTEM_SCRIPTS="\
+    /etc/init.d/incredibuild_coordinator \
+    /etc/rc5.d/S98incredibuild_coordinator \
+	/etc/grid_server_domain.conf"
 
-INCREDIBUILD_SERVICES=" \
-    incredibuild"
+INCREDIBUILD_COORDINATOR_SERVICES=" \
+    incredibuild_coordinator"
 
 SSH_ADDONS="\
     $SSH_ROOT_DIR/incredibuild.pem \
@@ -44,21 +32,16 @@ function check_conditions() {
 
 function stop_services() {
     echo "Stop incredibuild services:"
-    for i in $INCREDIBUILD_SERVICES;
+    for i in $INCREDIBUILD_COORDINATOR_SERVICES;
     do
         echo "stop service $i";
         service $i stop;
     done
 }
 
-function remove_web() {
-    echo "Removing web gui:"
-    rm -vfr $WEB_DIR
-}
-
 function remove_binaries() {
     echo "Removing binary files:"
-    for i in $INCREDIBUILD_BINARY_FILES;
+    for i in $INCREDIBUILD_COORDINATOR_BINARY_FILES;
     do
         echo "removing $i";
         rm -vfr $i;
@@ -67,7 +50,7 @@ function remove_binaries() {
 
 function remove_scripts() {
     echo "Removing script files:"
-    for i in $INCREDIBUILD_SYSTEM_SCRIPTS;
+    for i in $INCREDIBUILD_COORDINATOR_SYSTEM_SCRIPTS;
     do
         echo "removing $i";
         rm -vfr $i;
@@ -90,7 +73,6 @@ function remove_user() {
 
 check_conditions
 stop_services
-remove_web
 remove_binaries
 remove_scripts
 remove_ssh_addon
