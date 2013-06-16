@@ -7,6 +7,7 @@ http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
+version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 WEB_DIR=/var/www/incredibuild
@@ -34,6 +35,12 @@ function check_conditions() {
         echo "please run sudo $script_name [coordinaor_machine_name]";
         exit
     fi
+}
+
+function print_version() {
+    echo "###############################################################################################"
+    echo "Processing: $script_name package version: $version ....."
+    echo "###############################################################################################"
 }
 
 function install_linux_packages() {
@@ -193,6 +200,7 @@ function remove_system_files() {
 }
 
 check_conditions
+print_version
 install_linux_packages &
 __wait `jobs -p`
 setup_nfs

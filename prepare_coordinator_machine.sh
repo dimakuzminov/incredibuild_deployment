@@ -8,6 +8,7 @@ PROJECT_DIR=$(pwd)
 DOMAN_SYSTEM_FILENAME=/etc/grid_server_domain.conf
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
+version=$(cat version.txt)
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -26,6 +27,12 @@ function check_conditions() {
         echo "please run sudo $script_name [optional:grid_server_domain.conf]";
         exit
     fi
+}
+
+function print_version() {
+    echo "###############################################################################################"
+    echo "Processing: $script_name package version: $version ....."
+    echo "###############################################################################################"
 }
 
 function install_linux_packages() {
@@ -119,6 +126,7 @@ function start_services() {
 }
 
 check_conditions
+print_version
 install_linux_packages &
 __wait `jobs -p`
 set_user_env
@@ -130,5 +138,7 @@ create_config_file
 create_domain_keys
 start_services
 # end of script
+echo "###############################################################################################"
 echo "FINISHED"
+echo "###############################################################################################"
 exit
