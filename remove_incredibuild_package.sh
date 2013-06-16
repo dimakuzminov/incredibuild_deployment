@@ -7,8 +7,6 @@ WEB_DIR=/var/www/incredibuild
 
 INCREDIBUILD_BINARY_FILES="\
     /bin/SlotStatistics \
-    /bin/PROCESS_A \
-    /bin/PROCESS_B \
     /bin/XgSubmit \
     /bin/GridServer \
     /bin/XgConsole \

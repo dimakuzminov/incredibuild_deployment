@@ -99,8 +99,6 @@ function copy_system_files() {
     cp etc/init.d/incredibuild_virtualization.sh    /etc/init.d/
     cp etc/rsyslog.d/30-incredibuild.conf           /etc/rsyslog.d/
     cp bin/GridServer       /bin/
-    cp bin/PROCESS_A        /bin/
-    cp bin/PROCESS_B        /bin/
     cp bin/SlotStatistics   /bin/
     cp bin/TestCoordinator  /bin/
     cp bin/XgConsole        /bin/
