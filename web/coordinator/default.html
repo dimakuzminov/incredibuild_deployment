@@ -9,31 +9,33 @@
 
 <script type="application/processing" data-processing-target="canvas">
 int progress;
-int slots;
-int slot_height;
-int slot_width;
 int[] err;
 int width;
 int delta_width;
 int alpha;
+int cellH;
+int cellW;	
+int indentH;
+int indentW;
 
 void setup()
 {
+    cellH = 20;
+    cellW = 160;	
+    indenth = 40;
+    indentw = 20;
     delta_width = 200;
     y_margin = 5;
-    width = delta_width*4;
-    slot_height=20;
-    slots = 3;
-    height = (slots+2)*slot_height*2;
+    width = cellW * 10;
+    height = cellH * 10 ;
     size(width, height);
     err = new int[7];
-    slot_width=5;
     progress=0;
     smooth();
-    frameRate(3);
+    frameRate(1);
     fontA = loadFont("Arial");
     textFont(fontA);
-    textSize(slot_height-(slot_height/4));
+    textSize(cellH*3/4);
     resolution_factor=500;
     alpha=50;
 }
@@ -65,6 +67,7 @@ function _cleanBackground()
 {
     _setColor(255,255,255);
     rect(0, 0, width, height);
+    _setColor(0,0,0);
 }
 
 void draw()
@@ -83,12 +86,11 @@ void draw()
     });
     var data = eval("("+test_json.responseText+")");
     console.log(data);
-    int cellH = 20;
-    int cellW = 180;	
     if (data) {
+        _cleanBackground();
+        indentH = 40;
+        indentW = 20;
         text( "List of Helper Machines", 20, 20 );
-        int indentH = 40;
-        int indentW = 20;
         text( "Connected",      indentW + cellW * 0, indentH );
         text( "Busy",           indentW + cellW * 1, indentH );
         text( "Hostname",       indentW + cellW * 2, indentH );
@@ -98,13 +100,13 @@ void draw()
         text( "ModelName",      indentW + cellW * 6, indentH );
 
         for(s=0, s_end=data.machines.length; s<s_end; s++) {
-            text( data.machines[s].connected,           indentW + cellW * 0, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].busy,                indentW + cellW * 1, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].hostname,            indentW + cellW * 2, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].cores,               indentW + cellW * 3, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].memory,              indentW + cellW * 4, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].operating_system,    indentW + cellW * 5, indentH + cellH * ( s + 1 ) );
-            text( data.machines[s].model_name,          indentW + cellW * 6, indentH + cellH * ( s + 1 ) );		
+            text( data.machines[s].connected,       indentW + cellW * 0, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].busy,            indentW + cellW * 1, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].hostname,        indentW + cellW * 2, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].cores,           indentW + cellW * 3, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].memory,          indentW + cellW * 4, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].operating_system,indentW + cellW * 5, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].model_name,      indentW + cellW * 6, indentH + cellH * ( s + 1 ) );		
         }
     }
 }
@@ -113,3 +115,4 @@ void draw()
 </body>
 <canvas id="canvas"></canvas>
 </html>
+
