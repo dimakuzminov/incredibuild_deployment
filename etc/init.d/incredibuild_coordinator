@@ -2,7 +2,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/bin/GridCoordinator
 NAME=GridCoordinator
 DESC="Incredibuild Coordinator Service"
-ARGS="-i /etc/grid_server_domain.conf -j /var/www/incredibuild_coordinator/monitor"
+ARGS="-i /etc/grid_server_domain.conf -j /var/www/incredibuild/coordinator/"
 pidfile=/var/run/incredibuild_coordinator.pid
 test -x $DAEMON || exit 0
 
