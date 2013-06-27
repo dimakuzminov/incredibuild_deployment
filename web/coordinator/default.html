@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Incredibuild Monitoring Windows</title>
+  <script src="/incredibuild/jquery.js"></script>
+  <script src="/incredibuild/processing.js"></script>
+</head>
+<body>
+
+<script type="application/processing" data-processing-target="canvas">
+int progress;
+int slots;
+int slot_height;
+int slot_width;
+int[] err;
+int width;
+int delta_width;
+int alpha;
+
+void setup()
+{
+    delta_width = 200;
+    y_margin = 5;
+    width = delta_width*4;
+    slot_height=20;
+    slots = 3;
+    height = (slots+2)*slot_height*2;
+    size(width, height);
+    err = new int[7];
+    slot_width=5;
+    progress=0;
+    smooth();
+    frameRate(3);
+    fontA = loadFont("Arial");
+    textFont(fontA);
+    textSize(slot_height-(slot_height/4));
+    resolution_factor=500;
+    alpha=50;
+}
+
+function _timeFormat(time)
+{
+    int second = 1000;
+    int minute = 60*second;
+    int hour = 60*minute;
+    int hours = (time-(time%hour))/hour;
+    int minutes = ((time-(time%minute))/minute)%60;
+    int seconds = ((time-(time%second))/second)%60;
+    return hours+"h:"+minutes+"m:"+seconds+"sec";
+}
+
+function _setColor(_green, _red, _blue)
+{
+    fill(_green, _red, _blue);
+    stroke(_green, _red, _blue);
+}
+
+function _setColor(_green, _red, _blue, _alpha)
+{
+    fill(_green, _red, _blue, _alpha);
+    stroke(_green, _red, _blue, _alpha);
+}
+
+function _cleanBackground()
+{
+    _setColor(255,255,255);
+    rect(0, 0, width, height);
+}
+
+void draw()
+{
+    var test_json = $.ajax({
+        url: "helper_machine_manager_report.json",
+        type: "GET",
+        cache: false,
+        async: false,
+        dataType: "json",
+        error: function(data){
+        },
+        success: function(data){
+            data=jQuery.parseJSON(data);
+        }
+    });
+    var data = eval("("+test_json.responseText+")");
+    console.log(data);
+    int cellH = 20;
+    int cellW = 180;	
+    if (data) {
+        text( "List of Helper Machines", 20, 20 );
+        int indentH = 40;
+        int indentW = 20;
+        text( "Connected",      indentW + cellW * 0, indentH );
+        text( "Busy",           indentW + cellW * 1, indentH );
+        text( "Hostname",       indentW + cellW * 2, indentH );
+        text( "Cores",          indentW + cellW * 3, indentH );
+        text( "Memory",         indentW + cellW * 4, indentH );
+        text( "OperatingSystem",indentW + cellW * 5, indentH );
+        text( "ModelName",      indentW + cellW * 6, indentH );
+
+        for(s=0, s_end=data.machines.length; s<s_end; s++) {
+            text( data.machines[s].connected,           indentW + cellW * 0, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].busy,                indentW + cellW * 1, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].hostname,            indentW + cellW * 2, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].cores,               indentW + cellW * 3, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].memory,              indentW + cellW * 4, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].operating_system,    indentW + cellW * 5, indentH + cellH * ( s + 1 ) );
+            text( data.machines[s].model_name,          indentW + cellW * 6, indentH + cellH * ( s + 1 ) );		
+        }
+    }
+}
+
+</script>
+</body>
+<canvas id="canvas"></canvas>
+</html>
