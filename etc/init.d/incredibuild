@@ -2,7 +2,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON=/bin/GridServer
 NAME=GridServer
 DESC="Incredibuild Initiator Service"
-ARGS="-j /var/www/incredibuild/monitor"
+ARGS="-j /var/www/incredibuild/build_monitor"
 pidfile=/var/run/incredibuild.pid
 test -x $DAEMON || exit 0
 
