@@ -100,7 +100,7 @@ void draw()
         }
     });
     var manager_data = eval("("+manager_json.responseText+")");
-    width = indentW + cellW * 8;
+    width = indentW + cellW * 9;
     var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 + 
                               cellH * manager_data.build_machines.length + cellH * 2;
     if( newHeight > height ) {
@@ -117,15 +117,17 @@ void draw()
         text( "Memory",         indentW + cellW * 4, indentH );
         text( "OperatingSystem",indentW + cellW * 5, indentH );
         text( "ModelName",      indentW + cellW * 6, indentH );
+        text( "Version",        indentW + cellW * 8, indentH );
         indentH += cellH;
         for(s=0, s_end=helper_machine_manager_data.machines.length; s<s_end; s++) {
-            text( helper_machine_manager_data.machines[s].connected,       indentW + cellW * 0, indentH );
-            text( helper_machine_manager_data.machines[s].busy,            indentW + cellW * 1, indentH );
-            text( helper_machine_manager_data.machines[s].hostname,        indentW + cellW * 2, indentH );
-            text( helper_machine_manager_data.machines[s].cores,           indentW + cellW * 3, indentH );
-            text( helper_machine_manager_data.machines[s].memory,          indentW + cellW * 4, indentH );
-            text( helper_machine_manager_data.machines[s].operating_system,indentW + cellW * 5, indentH );
-            text( helper_machine_manager_data.machines[s].model_name,      indentW + cellW * 6, indentH );	
+            text( helper_machine_manager_data.machines[s].connected,        indentW + cellW * 0, indentH );
+            text( helper_machine_manager_data.machines[s].busy,             indentW + cellW * 1, indentH );
+            text( helper_machine_manager_data.machines[s].hostname,         indentW + cellW * 2, indentH );
+            text( helper_machine_manager_data.machines[s].cores,            indentW + cellW * 3, indentH );
+            text( helper_machine_manager_data.machines[s].memory,           indentW + cellW * 4, indentH );
+            text( helper_machine_manager_data.machines[s].operating_system, indentW + cellW * 5, indentH );
+            text( helper_machine_manager_data.machines[s].model_name,       indentW + cellW * 6, indentH );	
+            text( helper_machine_manager_data.machines[s].version,          indentW + cellW * 8, indentH );
             indentH += cellH;		
         }
     }
