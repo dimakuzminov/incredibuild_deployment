@@ -11,7 +11,10 @@ version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 WEB_DIR=/var/www/incredibuild
-OS_VERSION=$(lsb_release -sd)
+OS_DISTRIBUTION=$(lsb_release -is)
+OS_RELEASE=$(lsb_release -rs)
+OS_CODE=$(lsb_release -cs)
+OS_VERSION=${OS_DISTRIBUTION}_${OS_RELEASE}_${OS_CODE}
 PACKAGE_DIR=OS/$OS_VERSION
 LOG=$script_name.log
 
