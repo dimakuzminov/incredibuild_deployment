@@ -1,0 +1,55 @@
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/bin/GridCoordinator
+NAME=GridCoordinator
+DESC="Incredibuild Coordinator Service"
+ARGS="-i /etc/grid_server_domain.conf"
+pidfile=/var/run/incredibuild_coordinator.pid
+test -x $DAEMON || exit 0
+
+set -e
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: $NAME"
+	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
+	;;
+  stop)
+	echo -n "Stopping $DESC: $NAME"
+	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
+	;;
+  restart)
+	echo -n "Stopping $DESC: $NAME"
+	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
+    sleep 5
+	echo -n "Starting $DESC: $NAME"
+	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
+        log_end_msg 0;
+    else
+        log_end_msg 1;
+    fi
+        ;;
+  status)
+	status_of_proc -p $pidfile $DAEMON $NAME && exit 0 || exit $?
+        ;;
+  *)
+	N=/etc/init.d/$NAME
+	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $N {start|stop|restart}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
