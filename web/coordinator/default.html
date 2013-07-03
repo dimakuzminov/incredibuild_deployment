@@ -17,16 +17,18 @@ int cellW;
 int cellH;	
 int indentW;
 int indentH;
+int indentHStart;
 
 void setup()
 {
     cellW = 160;
     cellH = 20;
-    indentw = 20;
+    indentW = 20;
     indentH = 40;
+    indentHStart = 40;
     delta_width = 200;
     y_margin = 5;
-    width = cellW * 10;
+    width = indentW + cellW * 9;
     height = cellH * 10 ;
     size(width, height);
     err = new int[7];
@@ -72,8 +74,7 @@ function _cleanBackground()
 
 void draw()
 {
-    indentW = 20;
-    indentH = 40;
+    indentH = indentHStart;
     var helper_machine_manager_json = $.ajax({
         url: "helper_machine_manager_report.json",
         type: "GET",
@@ -105,6 +106,7 @@ void draw()
                               cellH * manager_data.build_machines.length + cellH * 2;
     if( newHeight > height ) {
         height = newHeight;
+        size(width, height);
     }
     _cleanBackground();
     if (helper_machine_manager_data) {
