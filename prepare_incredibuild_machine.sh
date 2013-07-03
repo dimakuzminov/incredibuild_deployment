@@ -70,6 +70,28 @@ function install_ubuntu_packages() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
+function install_centos_packages() {
+    print_log "Enter ${FUNCNAME[0]}"
+    echo -ne "[$OS_VERSION]: updating software list..."
+    yum  update -y 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: download boa..."
+    wget http://centos.karan.org/el4/extras/stable/x86_64/RPMS/boa-0.94.14-0.2.rc21.el4.kb.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: install boa..."
+    yum install -y boa-0.94.14-0.2.rc21.el4.kb.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    sed "s;/var/www/boa/html;/var/www;" -i /etc/boa/boa.conf
+    echo -ne "[$OS_VERSION]: install cachefilesd..."
+    yum install -y cachefilesd 1>>LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: install nfs kernel server..."
+    yum install -y nfs-utils 1>>LOG 2>&1 &
+    __wait `jobs -p`
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
 function enable_cachefs() {
     print_log "Enter ${FUNCNAME[0]}"
     sed "s;\# RUN;RUN;" -i /etc/default/cachefilesd
@@ -259,6 +281,23 @@ function prepare_ubuntu_package() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
+function prepare_centos_package() {
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "configuring machine..."
+    install_centos_packages
+    setup_nfs
+    enable_cachefs
+    set_user_env
+    copy_system_files
+    copy_web_files
+    restart_3rd_side_services
+    print_log "configuring incredibuild..."
+    prepare_ssh
+    register_machine
+    start_services
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
 #############################################################################
 # __main__:
 #                                   - script entry point
@@ -273,8 +312,12 @@ function __main__() {
     if ! [ $(expr match "$OS_VERSION" "Ubuntu") == "0" ]; then
         prepare_ubuntu_package
         exit
-  fi
-  echo "We shouldn't be here, script is not update to support OS [$OS_VERSION]"
+    fi
+    if ! [ $(expr match "$OS_VERSION" "CentOS") == "0" ]; then
+        prepare_centos_package
+        exit
+    fi
+    echo "We shouldn't be here, script is not update to support OS [$OS_VERSION]"
 }
 
 #############################################################################
