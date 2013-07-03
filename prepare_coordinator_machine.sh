@@ -50,14 +50,30 @@ function print_version() {
     print_log "Processing: $script_name package version: $version ....."
 }
 
-function install_linux_packages() {
+function install_ubuntu_packages() {
     print_log "Enter ${FUNCNAME[0]}"
     echo -ne "[$OS_VERSION]: updating software list..."
-    apt-get update- y 1>>$LOG 2>&1 &
+    apt-get update -y 1>>$LOG 2>&1 &
     __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install 3rd party packages..."
     apt-get install -y libssh-dev ssh 1>>$LOG 2>&1 &
     __wait `jobs -p`
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
+function install_centos_packages() {
+    print_log "Enter ${FUNCNAME[0]}"
+    echo -ne "[$OS_VERSION]: updating software list..."
+    yum  update -y 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: download boa..."
+    wget http://centos.karan.org/el4/extras/stable/x86_64/RPMS/boa-0.94.14-0.2.rc21.el4.kb.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: install boa..."
+    yum install -y boa-0.94.14-0.2.rc21.el4.kb.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    sed "s;/var/www/boa/html;/var/www;" -i /etc/boa/boa.conf
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -165,7 +181,21 @@ function start_services() {
 function prepare_ubuntu_package() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "configuring machine..."
-    install_linux_packages
+    install_ubuntu_packages
+    set_user_env
+    copy_system_files
+    stop_3rd_side_services
+    print_log "configuring incredibuild..."
+    create_ssh_root
+    create_config_file
+    create_domain_keys
+    start_services
+}
+
+function prepare_centos_package() {
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "configuring machine..."
+    install_centos_packages
     set_user_env
     copy_system_files
     stop_3rd_side_services
@@ -190,8 +220,12 @@ function __main__() {
     if ! [ $(expr match "$OS_VERSION" "Ubuntu") == "0" ]; then
         prepare_ubuntu_package
         exit
-  fi
-  echo "We shouldn't be here, script is not update to support OS [$OS_VERSION]"
+    fi
+    if ! [ $(expr match "$OS_VERSION" "CentOS") == "0" ]; then
+        prepare_centos_package
+        exit
+    fi
+    echo "We shouldn't be here, script is not update to support OS [$OS_VERSION]"
 }
 
 #############################################################################
