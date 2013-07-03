@@ -11,6 +11,9 @@ version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 WEB_DIR=/var/www/incredibuild
+OS_VERSION=$(lsb_release -sd)
+PACKAGE_DIR=OS/$OS_VERSION
+LOG=$script_name.log
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -35,39 +38,57 @@ function check_conditions() {
         echo "please run sudo $script_name [coordinaor_machine_name]";
         exit
     fi
+    if ! [ -d "OS/$OS_VERSION" ];
+    then
+        echo "Error this OS [$OS_VERSION] is not Supported"
+        exit
+    fi
+    rm $LOG
+}
+
+function print_log() {
+    echo "######### $1"
+    echo "######### $1" 1>>$LOG 2>&1
 }
 
 function print_version() {
-    echo "###############################################################################################"
-    echo "Processing: $script_name package version: $version ....."
-    echo "###############################################################################################"
+    print_log "Processing: $script_name package version: $version ....."
 }
 
-function install_linux_packages() {
-    echo -ne "Installing critical linux packages: .."
-    apt-get update -qq
-    apt-get install -qq -y \
-        nfs-kernel-server cachefilesd libssh-dev boa ssh
+function install_ubuntu_packages() {
+    print_log "Enter ${FUNCNAME[0]}"
+    echo -ne "[$OS_VERSION]: updating software list..."
+    apt-get update 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: install 3rd party packages..."
+    apt-get install -y nfs-kernel-server cachefilesd libssh-dev boa ssh 1>>LOG 2>&1 &
+    __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function enable_cachefs() {
+    print_log "Enter ${FUNCNAME[0]}"
     sed "s;\# RUN;RUN;" -i /etc/default/cachefilesd
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function setup_nfs() {
+    print_log "Enter ${FUNCNAME[0]}"
     found=$(grep "/ \*(" /etc/exports)
     if [ -z "$found" ];
     then
         sh -c 'echo "/ *(rw,sync,no_subtree_check)" >> /etc/exports';
         exportfs -ra;
     fi
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function set_user_env() {
+    print_log "Enter ${FUNCNAME[0]}"
     if [ $(grep $user /etc/passwd) ];
     then
-        echo "user $user already exists, skipping";
+        print_log "user $user already exists, skipping";
     else
         echo "$password
 $password
@@ -77,53 +98,62 @@ $password
 
 
 y
-" | adduser $user;
-        adduser $user root;
-        adduser $user sudo;
+" | adduser $user 1>>$LOG 2>&1;
+        adduser $user root 1>>$LOG 2>&1;
+        adduser $user sudo 1>>$LOG 2>&1;
     fi
     found=$(grep "$user" /etc/sudoers)
     if [ -z "$found" ];
     then
         echo '%$user ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
     else
-        echo "user $user already sudo, skipping"
+        print_log "user $user already sudo, skipping"
     fi
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function copy_system_files() {
-    service incredibuild stop
-    cp etc/default/incredibuild_profile.xml         /etc/default/
-    cp etc/init.d/clean_incredibuild_log.sh         /etc/init.d/
-    cp etc/init.d/incredibuild                      /etc/init.d/
-    cp etc/init.d/incredibuild_ssh_verification.sh  /etc/init.d/
-    cp etc/init.d/incredibuild_virtualization.sh    /etc/init.d/
-    cp etc/rsyslog.d/30-incredibuild.conf           /etc/rsyslog.d/
-    cp bin/GridServer       /bin/
-    cp bin/SlotStatistics   /bin/
-    cp bin/TestCoordinator  /bin/
-    cp bin/XgConsole        /bin/
-    cp bin/XgRegisterMe     /bin/
-    cp bin/XgSubmit         /bin/
-    cp bin/XgWait           /bin/
-    cp usr/lib/libincredibuildintr.so /usr/lib/
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "stop incredibuild service..."
+    service incredibuild stop 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/default/incredibuild_profile.xml"         /etc/default/   -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/GridServer"                               /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/SlotStatistics"                           /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/TestCoordinator"                          /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgSubmit"                                 /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgWait"                                   /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/usr/lib/libincredibuildintr.so"               /usr/lib/       -v 1>>$LOG 2>&1
     ln -sf /etc/init.d/incredibuild /etc/rc1.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc2.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function copy_web_files() {
-    mkdir -p $http_repository
-    cp -fr web/* $http_repository/
+    print_log "Enter ${FUNCNAME[0]}"
+    mkdir -pv $http_repository                      1>>$LOG 2>&1
+    cp -vfr "$PACKAGE_DIR/web/"* $http_repository/  1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
-function restart_services() {
-    service rsyslog stop
-    service boa stop
+function restart_3rd_side_services() {
+    print_log "Enter ${FUNCNAME[0]}"
+    service rsyslog stop 1>>$LOG 2>&1
+    service boa stop     1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function prepare_ssh() {
+    print_log "Enter ${FUNCNAME[0]}"
     mkdir -p $SSH_ROOT_DIR
     rm -f $SSH_ROOT_DIR/known_hosts
     echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
@@ -133,24 +163,27 @@ function prepare_ssh() {
     echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
     echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
     chmod 0600 $PERM_FILE
-    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem
+    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
     chmod 0600 $PERM_FILE 
-    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
+    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys 1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function register_machine() {
+    print_log "Enter ${FUNCNAME[0]}"
     XgRegisterMe -h $coordinator_machine > temp_log
     status_already_registered=$(grep "$MACHINE_ALREADY_REGISTERED" temp_log)
     status_registered=$(grep "$MACHINE_REGISTERED" temp_log)
     if ! [[ -z "$status_already_registered" ]];
     then
-        echo "local machine is already registered"
+        print_log "local machine is already registered"
     else
         if ! [[ -z "$status_registered" ]];
         then
-            echo "local machine is registered"
+            print_log "local machine is registered"
         else
-            echo "!!! Error cannot acccess correctly coordinator machine $coordinator_machine"
+            print_log "!!! Error cannot acccess correctly coordinator machine $coordinator_machine"
+            print_log "!!! Uninstall process..."
             remove_web
             remove_user
             remove_system_files
@@ -160,57 +193,93 @@ function register_machine() {
     cat << EOF > /etc/default/incredibuild
 coordinator = $coordinator_machine
 EOF
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function start_services() {
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "start 3rd side part services..."
     service rsyslog start
     service boa start
+    print_log "start incredibuild service..."
     service incredibuild start
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function remove_user() {
-    echo "Removing user $user :"
-    userdel $user
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "Removing user $user :"
+    userdel $user 1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function remove_web() {
-    echo "Removing web gui:"
-    rm -vfr $WEB_DIR
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "Removing web gui:"
+    rm -vfr $WEB_DIR  1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
 function remove_system_files() {
-    rm /etc/default/incredibuild_profile.xml
-    rm /etc/init.d/clean_incredibuild_log.sh
-    rm /etc/init.d/incredibuild
-    rm /etc/init.d/incredibuild_ssh_verification.sh
-    rm /etc/init.d/incredibuild_virtualization.sh
-    rm /etc/rsyslog.d/30-incredibuild.conf
-    rm /bin/GridServer
-    rm /bin/PROCESS_A
-    rm /bin/PROCESS_B
-    rm /bin/SlotStatistics
-    rm /bin/TestCoordinator
-    rm /bin/XgConsole
-    rm /bin/XgRegisterMe
-    rm /bin/XgSubmit
-    rm /bin/XgWait
-    rm /usr/lib/libincredibuildintr.so
+    print_log "Enter ${FUNCNAME[0]}"
+    rm /etc/default/incredibuild_profile.xml            1>>$LOG 2>&1
+    rm /etc/init.d/clean_incredibuild_log.sh            1>>$LOG 2>&1
+    rm /etc/init.d/incredibuild                         1>>$LOG 2>&1
+    rm /etc/init.d/incredibuild_ssh_verification.sh     1>>$LOG 2>&1
+    rm /etc/init.d/incredibuild_virtualization.sh       1>>$LOG 2>&1
+    rm /etc/rsyslog.d/30-incredibuild.conf              1>>$LOG 2>&1
+    rm /bin/GridServer                                  1>>$LOG 2>&1
+    rm /bin/SlotStatistics                              1>>$LOG 2>&1
+    rm /bin/TestCoordinator                             1>>$LOG 2>&1
+    rm /bin/XgConsole                                   1>>$LOG 2>&1
+    rm /bin/XgRegisterMe                                1>>$LOG 2>&1
+    rm /bin/XgSubmit                                    1>>$LOG 2>&1
+    rm /bin/XgWait                                      1>>$LOG 2>&1
+    rm /usr/lib/libincredibuildintr.so                  1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
 }
 
-check_conditions
-print_version
-install_linux_packages &
-__wait `jobs -p`
-setup_nfs
-enable_cachefs
-set_user_env
-copy_system_files
-copy_web_files
-restart_services
-echo "Set security domain for grid Initiator machine"
-prepare_ssh
-register_machine
-start_services
-# end of script
-echo "FINISHED"
-exit
+function prepare_ubuntu_package() {
+    print_log "Enter ${FUNCNAME[0]}"
+    print_log "configuring machine..."
+    install_ubuntu_packages
+    setup_nfs
+    enable_cachefs
+    set_user_env
+    copy_system_files
+    copy_web_files
+    restart_3rd_side_services
+    print_log "configuring incredibuild..."
+    prepare_ssh
+    register_machine
+    start_services
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
+#############################################################################
+# __main__:
+#                                   - script entry point
+#                                   - check current Linux version and 
+#                                   - launch prepare process
+#                                   - Curently supported:
+#                                           Ubuntu 12.04
+#############################################################################
+function __main__() {
+    check_conditions
+    print_version
+    if ! [ $(expr match "$OS_VERSION" "Ubuntu") == "0" ]; then
+        prepare_ubuntu_package
+        exit
+  fi
+  echo "We shouldn't be here, script is not update to support OS [$OS_VERSION]"
+}
+
+#############################################################################
+#############################################################################
+# Code execution point:
+#                           - __main__ enter point for script execution                      
+#
+#############################################################################
+#############################################################################
+
+__main__
