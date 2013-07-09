@@ -89,6 +89,10 @@ function install_centos_packages() {
     echo -ne "[$OS_VERSION]: install nfs kernel server..."
     yum install -y nfs-utils 1>>LOG 2>&1 &
     __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
+    wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
+    echo -ne "[$OS_VERSION]: installing libssh 0.5.3 x86_64 rpm..."
+    yum install libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -190,7 +194,7 @@ function prepare_ssh() {
     chmod 0600 $PERM_FILE
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
     chmod 0600 $PERM_FILE 
-    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys 1>>$LOG 2>&1
+    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
     print_log "Exit ${FUNCNAME[0]}"
 }
 
