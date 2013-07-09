@@ -69,7 +69,7 @@ function install_centos_packages() {
     echo -ne "[$OS_VERSION]: install Apache..."
     yum install -y httpd  1>>$LOG 2>&1 &
     __wait `jobs -p`
-    sed "s;\<Port 80\>;Port 8080;" -i /etc/httpd/conf/httpd.conf
+    sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
     echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
     wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
