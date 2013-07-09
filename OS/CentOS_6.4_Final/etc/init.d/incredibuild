@@ -6,50 +6,50 @@ ARGS="-j /var/www/incredibuild/monitor"
 pidfile=/var/run/incredibuild.pid
 test -x $DAEMON || exit 0
 
-set -e
-. /lib/lsb/init-functions
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+
+start() {
+	# Start daemons.
+	echo -n $"Starting $NAME: "
+	daemon ${DAEMON} ${ARGS} 1>/dev/null 2>&1 &
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
+	echo
+	return $RETVAL
+}
+
+stop() {
+	# Stop daemons.
+	echo -n $"Stopping $NAME: "
+	killproc ${DAEMON}
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
+	echo
+	return $RETVAL
+}
 
 case "$1" in
   start)
-	echo -n "Starting $DESC: $NAME"
-	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
-        log_end_msg 0;
-    else
-        log_end_msg 1;
-    fi
+	start
 	;;
   stop)
-	echo -n "Stopping $DESC: $NAME"
-	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
-        log_end_msg 0;
-    else
-        log_end_msg 1;
-    fi
+	stop
+	;;
+  status)
+	status ${NAME}
 	;;
   restart)
-	echo -n "Stopping $DESC: $NAME"
-	if start-stop-daemon --stop --quiet --oknodo --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
-        log_end_msg 0;
-    else
-        log_end_msg 1;
-    fi
-    sleep 5
-	echo -n "Starting $DESC: $NAME"
-	if start-stop-daemon --start --quiet --oknodo --make-pidfile --background --pidfile $pidfile --exec "${DAEMON}" -- ${ARGS}; then
-        log_end_msg 0;
-    else
-        log_end_msg 1;
-    fi
+	restart
         ;;
-  status)
-	status_of_proc -p $pidfile $DAEMON $NAME && exit 0 || exit $?
+  condrestart)
+	[ -f /var/lock/subsys/${NAME} ] && restart
         ;;
   *)
-	N=/etc/init.d/$NAME
-	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $N {start|stop|restart}" >&2
+	echo $"Usage: incredibuild_coordinator {start|stop|status|restart|condrestart}"
 	exit 1
 	;;
 esac
 
-exit 0
+exit $?

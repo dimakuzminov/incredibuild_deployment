@@ -47,8 +47,9 @@ case "$1" in
 	[ -f /var/lock/subsys/${NAME} ] && restart
 	;;
   *)
-	echo $"Usage: incredibuild_coordinator {start|stop|status|restart|condrestart}"
+	echo $"Usage: incredibuild {start|stop|status|restart|condrestart}"
 	exit 1
+	;;
 esac
 
 exit $?
