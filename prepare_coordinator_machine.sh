@@ -71,6 +71,10 @@ function install_centos_packages() {
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
+    service httpd stop                  1>>$LOG 2>&1 &
+    service httpd start                 1>>$LOG 2>&1 &
+    chkconfig httpd --add               1>>$LOG 2>&1 &
+    chkconfig  httpd  on --level 235    1>>$LOG 2>&1 &
     echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
     wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
     echo -ne "[$OS_VERSION]: installing libssh 0.5.3 x86_64 rpm..."
