@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Profile FormatVersion="1">
+    <Tools>
+        <Tool DummyMode="false" />
+        <Tool MonitorEnable="false" />
+        <Tool Filename="sh" AllowIntercept="true" />
+        <Tool Filename="waf" AllowIntercept="true" />
+        <Tool Filename="python" AllowIntercept="true" />
+        <Tool Filename="cmake" AllowIntercept="true" />
+        <Tool Filename="make" AllowIntercept="true" />
+        <Tool Filename="gcc" AllowRemote="true" />
+        <Tool Filename="gcc" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="g++" AllowRemote="true" />
+        <Tool Filename="g++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="c++" AllowRemote="true" />
+        <Tool Filename="c++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="cc1plus" AllowRemote="true" />
+        <Tool Filename="cc1" AllowRemote="true" />
+        <Tool Filename="collect2" AllowLocal="true" />
+        <Tool Filename="LD" AllowLocal="true" />
+        <Tool Filename="ld" AllowLocal="true" />
+    </Tools>
+</Profile>

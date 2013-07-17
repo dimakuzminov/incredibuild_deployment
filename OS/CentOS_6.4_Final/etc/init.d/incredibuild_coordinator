@@ -1,0 +1,55 @@
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/bin/GridCoordinator
+NAME=GridCoordinator
+DESC="Incredibuild Coordinator Service"
+ARGS="-i /etc/grid_server_domain.conf"
+pidfile=/var/run/incredibuild_coordinator.pid
+test -x $DAEMON || exit 0
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+
+start() {
+	# Start daemons.
+	echo -n $"Starting $NAME: "
+	daemon ${DAEMON} ${ARGS} 1>/dev/null 2>&1 &
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
+	echo
+	return $RETVAL
+}
+
+stop() {
+	# Stop daemons.
+	echo -n $"Stopping $NAME: "
+	killproc ${DAEMON}
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/${NAME}
+	echo
+	return $RETVAL
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+	status ${NAME}
+	;;
+  restart)
+	restart
+	;;
+  condrestart)
+	[ -f /var/lock/subsys/${NAME} ] && restart
+	;;
+  *)
+	echo $"Usage: incredibuild {start|stop|status|restart|condrestart}"
+	exit 1
+	;;
+esac
+
+exit $?
