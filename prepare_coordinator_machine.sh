@@ -132,6 +132,15 @@ function copy_system_files() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
+function copy_web_files() {
+    print_log "Enter ${FUNCNAME[0]}"
+    mkdir -pv $http_repository/coordinator                                              1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/jquery.js"                  $http_repository/              1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/processing.js"              $http_repository/              1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/coordinator/default.html"   $http_repository/coordinator   1>>$LOG 2>&1
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
 function stop_3rd_side_services() {
     print_log "Enter ${FUNCNAME[0]}"
     service rsyslog stop
@@ -189,6 +198,7 @@ function prepare_ubuntu_package() {
     install_ubuntu_packages
     set_user_env
     copy_system_files
+    copy_web_files
     stop_3rd_side_services
     print_log "configuring incredibuild..."
     create_ssh_root
@@ -203,6 +213,7 @@ function prepare_centos_package() {
     install_centos_packages
     set_user_env
     copy_system_files
+    copy_web_files
     stop_3rd_side_services
     print_log "configuring incredibuild..."
     create_ssh_root

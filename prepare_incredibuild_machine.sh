@@ -10,7 +10,6 @@ PERM_FILE=$PROJECT_DIR/linux.pem
 version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
-WEB_DIR=/var/www/incredibuild
 OS_DISTRIBUTION=$(lsb_release -is)
 OS_RELEASE=$(lsb_release -rs)
 OS_CODE=$(lsb_release -cs)
@@ -173,8 +172,10 @@ function copy_system_files() {
 
 function copy_web_files() {
     print_log "Enter ${FUNCNAME[0]}"
-    mkdir -pv $http_repository                      1>>$LOG 2>&1
-    cp -vfr "$PACKAGE_DIR/web/"* $http_repository/  1>>$LOG 2>&1
+    mkdir -pv $http_repository/build_monitor                                            1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/jquery.js"                  $http_repository/              1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/processing.js"              $http_repository/              1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/build_monitor/default.html" $http_repository/build_monitor 1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -249,7 +250,11 @@ function remove_user() {
 function remove_web() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "Removing web gui:"
-    rm -vfr $WEB_DIR  1>>$LOG 2>&1
+    if [ -d "$http_repository/coordinator" ]; then
+        rm -vfr $http_repository/build_monitor 1>>$LOG 2>&1;
+    else
+        rm -vfr $http_repository  1>>$LOG 2>&1;
+    fi
     print_log "Exit ${FUNCNAME[0]}"
 }
 
