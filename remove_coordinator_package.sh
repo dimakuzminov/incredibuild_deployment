@@ -48,6 +48,15 @@ function remove_binaries() {
     done
 }
 
+function remove_web() {
+    echo "Removing web gui:"
+    if [ -d "$WEB_DIR/build_monitor" ]; then
+        rm -vfr $WEB_DIR/coordinator 1>>$LOG 2>&1;
+    else
+        rm -vfr $WEB_DIR  1>>$LOG 2>&1;
+    fi
+}
+
 function remove_scripts() {
     echo "Removing script files:"
     for i in $INCREDIBUILD_COORDINATOR_SYSTEM_SCRIPTS;
@@ -73,6 +82,7 @@ function remove_user() {
 
 check_conditions
 stop_services
+remove_web
 remove_binaries
 remove_scripts
 remove_ssh_addon

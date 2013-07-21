@@ -51,7 +51,11 @@ function stop_services() {
 
 function remove_web() {
     echo "Removing web gui:"
-    rm -vfr $WEB_DIR
+    if [ -d "$WEB_DIR/coordinator" ]; then
+        rm -vfr $WEB_DIR/build_monitor 1>>$LOG 2>&1;
+    else
+        rm -vfr $WEB_DIR  1>>$LOG 2>&1;
+    fi
 }
 
 function remove_binaries() {
