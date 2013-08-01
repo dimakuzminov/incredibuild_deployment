@@ -148,9 +148,12 @@ function copy_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "stop incredibuild service..."
     service incredibuild stop 1>>$LOG 2>&1
+    print_log "stop incredibuild_helper service..."
+    service incredibuild_helper stop 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/default/incredibuild_profile.xml"         /etc/default/   -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/incredibuild_helper"               /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
@@ -159,6 +162,7 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/bin/TestCoordinator"                          /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgConnectMe"                              /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgSubmit"                                 /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgWait"                                   /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/usr/lib/libincredibuildintr.so"               /usr/lib/       -v 1>>$LOG 2>&1
@@ -167,6 +171,11 @@ function copy_system_files() {
     ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
+    ln -sf /etc/init.d/incredibuild /etc/rc1.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild /etc/rc2.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild_helper
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -237,6 +246,8 @@ function start_services() {
     service boa start
     print_log "start incredibuild service..."
     service incredibuild start
+    print_log "start incredibuild service..."
+    service incredibuild_helper start
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -260,9 +271,22 @@ function remove_web() {
 
 function remove_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
+    rm /etc/rc1.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc2.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc3.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc4.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc5.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc6.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc1.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc2.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc3.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc4.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc5.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc6.d/S99incredibuild_helper                1>>$LOG 2>&1
     rm /etc/default/incredibuild_profile.xml            1>>$LOG 2>&1
     rm /etc/init.d/clean_incredibuild_log.sh            1>>$LOG 2>&1
     rm /etc/init.d/incredibuild                         1>>$LOG 2>&1
+    rm /etc/init.d/incredibuild_helper                  1>>$LOG 2>&1
     rm /etc/init.d/incredibuild_ssh_verification.sh     1>>$LOG 2>&1
     rm /etc/init.d/incredibuild_virtualization.sh       1>>$LOG 2>&1
     rm /etc/rsyslog.d/30-incredibuild.conf              1>>$LOG 2>&1
@@ -271,6 +295,7 @@ function remove_system_files() {
     rm /bin/TestCoordinator                             1>>$LOG 2>&1
     rm /bin/XgConsole                                   1>>$LOG 2>&1
     rm /bin/XgRegisterMe                                1>>$LOG 2>&1
+    rm /bin/XgConnectMe                                 1>>$LOG 2>&1
     rm /bin/XgSubmit                                    1>>$LOG 2>&1
     rm /bin/XgWait                                      1>>$LOG 2>&1
     rm /usr/lib/libincredibuildintr.so                  1>>$LOG 2>&1
