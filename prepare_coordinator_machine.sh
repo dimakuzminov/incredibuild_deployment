@@ -8,7 +8,6 @@ PROJECT_DIR=$(pwd)
 DOMAN_SYSTEM_FILENAME=/etc/grid_server_domain.conf
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
-version=$(cat version.txt)
 OS_DISTRIBUTION=$(lsb_release -is)
 OS_RELEASE=$(lsb_release -rs)
 OS_CODE=$(lsb_release -cs)
@@ -47,7 +46,13 @@ function print_log() {
 }
 
 function print_version() {
-    print_log "Processing: $script_name package version: $version ....."
+    version_file=$PROJECT_DIR/OS/$OS_VERSION/version.txt 
+    if [ -f "$version_file" ];
+    then
+        print_log "Processing: $script_name package version: $(cat $version_file) ....."
+    else
+        print_log "Processing: $script_name package version: this package cannot support $OS_VERSION"
+    fi
 }
 
 function install_ubuntu_packages() {

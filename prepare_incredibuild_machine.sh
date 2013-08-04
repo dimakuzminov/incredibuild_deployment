@@ -7,7 +7,6 @@ http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
-version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 OS_DISTRIBUTION=$(lsb_release -is)
@@ -54,7 +53,13 @@ function print_log() {
 }
 
 function print_version() {
-    print_log "Processing: $script_name package version: $version ....."
+    version_file=$PROJECT_DIR/OS/$OS_VERSION/version.txt 
+    if [ -f "$version_file" ];
+    then
+        print_log "Processing: $script_name package version: $(cat $version_file) ....."
+    else
+        print_log "Processing: $script_name package version: this package cannot support $OS_VERSION"
+    fi
 }
 
 function install_ubuntu_packages() {
