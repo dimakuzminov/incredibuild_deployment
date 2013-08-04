@@ -28,9 +28,8 @@ void setup()
     indentHStart = 40;
     delta_width = 200;
     y_margin = 5;
-    width = indentW + cellW * 9;
+    width = indentW + cellW * 10;
     height = cellH * 10 ;
-    size(width, height);
     err = new int[7];
     progress=0;
     smooth();
@@ -40,6 +39,21 @@ void setup()
     textSize(cellH*3/4);
     resolution_factor=500;
     alpha=50;
+    connected_offset=0;
+    busy_counter_offset=connected_offset+80;
+    hostname_offset=busy_counter_offset+100;
+    memory_offset=hostname_offset+230;
+    cores_offset=memory_offset+80;
+    cpu_freq_offset=cores_offset+70;
+    cpu_load_offset=cpu_freq_offset+80;
+    operation_system_offset=cpu_load_offset+80;
+    incredibuild_version_offset=operation_system_offset+170;
+    model_name_offset=incredibuild_version_offset+150;
+    total_length=model_name_offset+300;
+    if ( total_length > width ) {
+        width = total_length;
+    }
+    size(width, height);
 }
 
 function _timeFormat(time)
@@ -101,7 +115,7 @@ void draw()
         }
     });
     var manager_data = eval("("+manager_json.responseText+")");
-    width = indentW + cellW * 9;
+    width = indentW + cellW * 10;
     var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 + 
                               cellH * manager_data.build_machines.length + cellH * 2;
     if( newHeight > height ) {
@@ -112,24 +126,29 @@ void draw()
     if (helper_machine_manager_data) {
         text( "List of Helper Machines", indentW, indentH );
         indentH += cellH;
-        text( "Connected",      indentW + cellW * 0, indentH );
-        text( "Busy Counter",   indentW + cellW * 1, indentH );
-        text( "Hostname",       indentW + cellW * 2, indentH );
-        text( "Cores",          indentW + cellW * 3, indentH );
-        text( "Memory",         indentW + cellW * 4, indentH );
-        text( "OperatingSystem",indentW + cellW * 5, indentH );
-        text( "ModelName",      indentW + cellW * 6, indentH );
-        text( "Version",        indentW + cellW * 8, indentH );
+        text( "Connected",              indentW + connected_offset,         indentH );
+        text( "Busy Counter",           indentW + busy_counter_offset,      indentH );
+        text( "Hostname",               indentW + hostname_offset,          indentH );
+        text( "Cores",                  indentW + cores_offset,             indentH );
+        text( "Memory",                 indentW + memory_offset,            indentH );
+        text( "OS",                     indentW + operation_system_offset,  indentH );
+        text( "CPU load",               indentW + cpu_load_offset,          indentH );
+        text( "CPU freq",               indentW + cpu_freq_offset,          indentH );
+        text( "Model Name",             indentW + model_name_offset,        indentH );
+        text( "Incredibuild Version",   indentW + incredibuild_version_offset, indentH );
         indentH += cellH;
         for(s=0, s_end=helper_machine_manager_data.machines.length; s<s_end; s++) {
-            text( helper_machine_manager_data.machines[s].connected,        indentW + cellW * 0, indentH );
-            text( helper_machine_manager_data.machines[s].references,       indentW + cellW * 1, indentH );
-            text( helper_machine_manager_data.machines[s].hostname,         indentW + cellW * 2, indentH );
-            text( helper_machine_manager_data.machines[s].cores,            indentW + cellW * 3, indentH );
-            text( helper_machine_manager_data.machines[s].memory,           indentW + cellW * 4, indentH );
-            text( helper_machine_manager_data.machines[s].operating_system, indentW + cellW * 5, indentH );
-            text( helper_machine_manager_data.machines[s].model_name,       indentW + cellW * 6, indentH );	
-            text( helper_machine_manager_data.machines[s].version,          indentW + cellW * 8, indentH );
+            cell=0;
+            text( helper_machine_manager_data.machines[s].connected,        indentW + connected_offset,             indentH );
+            text( helper_machine_manager_data.machines[s].references,       indentW + busy_counter_offset,          indentH );
+            text( helper_machine_manager_data.machines[s].hostname,         indentW + hostname_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].memory,           indentW + memory_offset,                indentH );
+            text( helper_machine_manager_data.machines[s].cpu_load,         indentW + cpu_load_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].cores,            indentW + cores_offset,                 indentH );
+            text( helper_machine_manager_data.machines[s].cpu_freq,         indentW + cpu_freq_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].operating_system, indentW + operation_system_offset,      indentH );
+            text( helper_machine_manager_data.machines[s].model_name,       indentW + model_name_offset,            indentH );	
+            text( helper_machine_manager_data.machines[s].version,          indentW + incredibuild_version_offset,  indentH );
             indentH += cellH;		
         }
     }
