@@ -176,11 +176,11 @@ function copy_system_files() {
     ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
-    ln -sf /etc/init.d/incredibuild /etc/rc1.d/S99incredibuild_helper
-    ln -sf /etc/init.d/incredibuild /etc/rc2.d/S99incredibuild_helper
-    ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild_helper
-    ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild_helper
-    ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc1.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc2.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc3.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc4.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc5.d/S99incredibuild_helper
     print_log "Exit ${FUNCNAME[0]}"
 }
 
