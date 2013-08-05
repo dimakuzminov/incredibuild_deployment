@@ -1,9 +1,9 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/bin/GridCoordinator
-NAME=GridCoordinator
-DESC="Incredibuild Coordinator Service"
-ARGS="-i /etc/grid_server_domain.conf -j /var/www/incredibuild/coordinator/"
-pidfile=/var/run/incredibuild_coordinator.pid
+DAEMON=/bin/XgConnectMe
+NAME=XgConnectMe
+DESC="Incredibuild helper machine I'm alive service"
+ARGS=""
+pidfile=/var/run/incredibuild_helper.pid
 test -x $DAEMON || exit 0
 
 # Source function library.
@@ -42,12 +42,13 @@ case "$1" in
 	;;
   restart)
 	restart
-	;;
+        ;;
   condrestart)
 	[ -f /var/lock/subsys/${NAME} ] && restart
-	;;
+        ;;
   *)
-	echo $"Usage: incredibuild {start|stop|status|restart|condrestart}"
+	N=/etc/init.d/$NAME
+	echo $"Usage: $N {start|stop|status|restart|condrestart}"
 	exit 1
 	;;
 esac

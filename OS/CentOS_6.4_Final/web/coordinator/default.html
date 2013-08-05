@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Incredibuild Monitoring Windows</title>
+  <script src="/incredibuild/jquery.js"></script>
+  <script src="/incredibuild/processing.js"></script>
+</head>
+<body>
+
+<script type="application/processing" data-processing-target="canvas">
+int progress;
+int[] err;
+int width;
+int delta_width;
+int alpha;
+int cellW;
+int cellH;	
+int indentW;
+int indentH;
+int indentHStart;
+
+void setup()
+{
+    cellW = 160;
+    cellH = 20;
+    indentW = 20;
+    indentH = 40;
+    indentHStart = 40;
+    delta_width = 200;
+    y_margin = 5;
+    width = indentW + cellW * 10;
+    height = cellH * 10 ;
+    err = new int[7];
+    progress=0;
+    smooth();
+    frameRate(1);
+    fontA = loadFont("Arial");
+    textFont(fontA);
+    textSize(cellH*3/4);
+    resolution_factor=500;
+    alpha=50;
+    connected_offset=0;
+    busy_counter_offset=connected_offset+80;
+    hostname_offset=busy_counter_offset+100;
+    memory_offset=hostname_offset+230;
+    cores_offset=memory_offset+80;
+    cpu_freq_offset=cores_offset+70;
+    cpu_load_offset=cpu_freq_offset+80;
+    operation_system_offset=cpu_load_offset+80;
+    incredibuild_version_offset=operation_system_offset+170;
+    model_name_offset=incredibuild_version_offset+150;
+    total_length=model_name_offset+300;
+    if ( total_length > width ) {
+        width = total_length;
+    }
+    size(width, height);
+}
+
+function _timeFormat(time)
+{
+    int second = 1000;
+    int minute = 60*second;
+    int hour = 60*minute;
+    int hours = (time-(time%hour))/hour;
+    int minutes = ((time-(time%minute))/minute)%60;
+    int seconds = ((time-(time%second))/second)%60;
+    return hours+"h:"+minutes+"m:"+seconds+"sec";
+}
+
+function _setColor(_green, _red, _blue)
+{
+    fill(_green, _red, _blue);
+    stroke(_green, _red, _blue);
+}
+
+function _setColor(_green, _red, _blue, _alpha)
+{
+    fill(_green, _red, _blue, _alpha);
+    stroke(_green, _red, _blue, _alpha);
+}
+
+function _cleanBackground()
+{
+    _setColor(255,255,255);
+    rect(0, 0, width, height);
+    _setColor(0,0,0);
+}
+
+void draw()
+{
+    indentH = indentHStart;
+    var helper_machine_manager_json = $.ajax({
+        url: "helper_machine_manager_report.json",
+        type: "GET",
+        cache: false,
+        async: false,
+        dataType: "json",
+        error: function(data){
+        },
+        success: function(data){
+            data=jQuery.parseJSON(data);
+        }
+    });
+    var helper_machine_manager_data = eval("("+helper_machine_manager_json.responseText+")");
+    var manager_json = $.ajax({
+        url: "manager_report.json",
+        type: "GET",
+        cache: false,
+        async: false,
+        dataType: "json",
+        error: function(data){
+        },
+        success: function(data){
+            data=jQuery.parseJSON(data);
+        }
+    });
+    var manager_data = eval("("+manager_json.responseText+")");
+    width = indentW + cellW * 10;
+    var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 + 
+                              cellH * manager_data.build_machines.length + cellH * 2;
+    if( newHeight > height ) {
+        height = newHeight;
+        size(width, height);
+    }
+    _cleanBackground();
+    if (helper_machine_manager_data) {
+        text( "List of Helper Machines", indentW, indentH );
+        indentH += cellH;
+        text( "Connected",              indentW + connected_offset,         indentH );
+        text( "Busy Counter",           indentW + busy_counter_offset,      indentH );
+        text( "Hostname",               indentW + hostname_offset,          indentH );
+        text( "Cores",                  indentW + cores_offset,             indentH );
+        text( "Memory",                 indentW + memory_offset,            indentH );
+        text( "OS",                     indentW + operation_system_offset,  indentH );
+        text( "CPU load",               indentW + cpu_load_offset,          indentH );
+        text( "CPU freq",               indentW + cpu_freq_offset,          indentH );
+        text( "Model Name",             indentW + model_name_offset,        indentH );
+        text( "Incredibuild Version",   indentW + incredibuild_version_offset, indentH );
+        indentH += cellH;
+        for(s=0, s_end=helper_machine_manager_data.machines.length; s<s_end; s++) {
+            cell=0;
+            text( helper_machine_manager_data.machines[s].connected,        indentW + connected_offset,             indentH );
+            text( helper_machine_manager_data.machines[s].references,       indentW + busy_counter_offset,          indentH );
+            text( helper_machine_manager_data.machines[s].hostname,         indentW + hostname_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].memory,           indentW + memory_offset,                indentH );
+            text( helper_machine_manager_data.machines[s].cpu_load,         indentW + cpu_load_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].cores,            indentW + cores_offset,                 indentH );
+            text( helper_machine_manager_data.machines[s].cpu_freq,         indentW + cpu_freq_offset,              indentH );
+            text( helper_machine_manager_data.machines[s].operating_system, indentW + operation_system_offset,      indentH );
+            text( helper_machine_manager_data.machines[s].model_name,       indentW + model_name_offset,            indentH );	
+            text( helper_machine_manager_data.machines[s].version,          indentW + incredibuild_version_offset,  indentH );
+            indentH += cellH;		
+        }
+    }
+    indentH += cellH;
+    if (manager_data) {
+        text( "List of Build Machines", indentW, indentH );
+        indentH += cellH;
+        for(s=0, s_end=manager_data.build_machines.length; s<s_end; s++) {
+            var str = manager_data.build_machines[s].initiator;
+            str = str.concat(" : ");
+            for(t=0, t_end=manager_data.build_machines[s].helper_machines.length; t<t_end; t++) {
+                str = str.concat(manager_data.build_machines[s].helper_machines[t].hostname);
+                str = str.concat(" [");
+                str = str.concat(manager_data.build_machines[s].helper_machines[t].cores);
+                str = str.concat("CPU], ");
+            }
+        text(str, indentW, indentH);
+        indentH += cellH;	
+        }
+    }
+}
+
+</script>
+</body>
+<canvas id="canvas"></canvas>
+</html>
+

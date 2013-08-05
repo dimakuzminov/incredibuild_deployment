@@ -7,10 +7,17 @@ avahi-tools.x86_64 \
 avahi-ui-tools.x86_64"
 
 function test_arg_conditions() {
+    if ! [ $(id -u) = 0 ];
+    then
+        echo "Error, must be run in root mode";
+        echo "please run: sudo $0 [newhostname]";
+        exit
+    fi
     if [[ -z $NEW_NAME ]];
     then
-        echo "please use $0 [newhostname]";
-        exit -1;
+        echo "Error, missing hostname parameter";
+        echo "please run: sudo $0 [newhostname]";
+        exit
     fi
 }
 
@@ -29,6 +36,7 @@ function check_avahi_package() {
 function set_new_hostname() {
     oldname=$(grep "127.0.0.1" /etc/hosts | awk '{print $2;}')
     sudo sed "s;$oldname;$NEW_NAME;" -i /etc/hosts
+    sudo sed "s;$oldname;$NEW_NAME;" -i /etc/sysconfig/network
     sudo sh -c "echo $NEW_NAME > /etc/hostname"
     sudo hostname -F /etc/hostname
     echo "Need to reboot machine ...."
@@ -37,4 +45,4 @@ function set_new_hostname() {
 
 test_arg_conditions
 check_avahi_package
-#set_new_hostname
+set_new_hostname
