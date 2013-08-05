@@ -84,19 +84,22 @@ function install_centos_packages() {
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
-    service httpd stop                  1>>$LOG 2>&1
-    service httpd start                 1>>$LOG 2>&1
-    chkconfig httpd --add               1>>$LOG 2>&1
-    chkconfig  httpd  on --level 235    1>>$LOG 2>&1
+    service httpd stop                        1>>$LOG 2>&1
+    service httpd start                       1>>$LOG 2>&1
+    chkconfig httpd --add                     1>>$LOG 2>&1
+    chkconfig  httpd  on --level 235          1>>$LOG 2>&1
     echo -ne "[$OS_VERSION]: install cachefilesd..."
-    yum install -y cachefilesd 1>>LOG 2>&1 &
+    yum install -y cachefilesd                1>>LOG 2>&1 &
     __wait `jobs -p`
+    service cachefilesd start                 1>>$LOG 2>&1
+    chkconfig cachefilesd --add               1>>$LOG 2>&1
+    chkconfig  cachefilesd  on --level 235    1>>$LOG 2>&1
     echo -ne "[$OS_VERSION]: install nfs kernel server..."
-    yum install -y nfs-utils 1>>LOG 2>&1 &
+    yum install -y nfs-utils                  1>>LOG 2>&1 &
     __wait `jobs -p`
-    service nfs start                 1>>$LOG 2>&1
-    chkconfig nfs --add               1>>$LOG 2>&1
-    chkconfig  nfs  on --level 235    1>>$LOG 2>&1
+    service nfs start                         1>>$LOG 2>&1
+    chkconfig nfs --add                       1>>$LOG 2>&1
+    chkconfig  nfs  on --level 235            1>>$LOG 2>&1
     ssh_file=libssh-0.5.0-1.el6.rf.x86_64.rpm
     ssh_devel_file=libssh-devel-0.5.0-1.el6.rf.x86_64.rpm
     if ! [ -f $ssh_file ]
@@ -105,7 +108,7 @@ function install_centos_packages() {
       wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_file 1>>$LOG 2>&1 &
       __wait `jobs -p`
       echo -ne "[$OS_VERSION]: installing $ssh_file ..."
-      yum install libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      yum install -y libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
       __wait `jobs -p`
     fi
     if ! [ -f $ssh_devel_file ]
@@ -114,9 +117,12 @@ function install_centos_packages() {
       wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_devel_file 1>>$LOG 2>&1 & 
       __wait `jobs -p`
       echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
-      yum install libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      yum install -y libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
       __wait `jobs -p`
     fi
+    service sshd start                 1>>$LOG 2>&1
+    chkconfig sshd --add               1>>$LOG 2>&1
+    chkconfig  sshd  on --level 235    1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -216,7 +222,7 @@ function restart_3rd_side_services() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
-function prepare_ssh() {
+function prepare_ssh_ubuntu() {
     print_log "Enter ${FUNCNAME[0]}"
     mkdir -p $SSH_ROOT_DIR
     rm -f $SSH_ROOT_DIR/known_hosts
@@ -230,6 +236,24 @@ function prepare_ssh() {
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
     chmod 0600 $PERM_FILE 
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
+function prepare_ssh_centos() {
+    print_log "Enter ${FUNCNAME[0]}"
+    mkdir -p $SSH_ROOT_DIR
+    rm -f $SSH_ROOT_DIR/known_hosts
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
+    chmod 0600 $PERM_FILE
+    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
+    chmod 0600 $PERM_FILE 
+    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
+    restorecon -R -v /root/.ssh 1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -334,7 +358,7 @@ function prepare_ubuntu_package() {
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh
+    prepare_ssh_ubuntu
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"
@@ -345,13 +369,12 @@ function prepare_centos_package() {
     print_log "configuring machine..."
     install_centos_packages
     setup_nfs
-    enable_cachefs
     set_user_env
     copy_system_files
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh
+    prepare_ssh_centos
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"
