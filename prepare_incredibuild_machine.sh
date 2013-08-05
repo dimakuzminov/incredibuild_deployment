@@ -92,10 +92,16 @@ function install_centos_packages() {
     service nfs start                 1>>$LOG 2>&1 &
     chkconfig nfs --add               1>>$LOG 2>&1 &
     chkconfig  nfs  on --level 235    1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
-    wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: installing libssh 0.5.3 x86_64 rpm..."
-    yum install libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
+    echo -ne "[$OS_VERSION]: download libssh 0.5.0-1 x86_64 rpm..."
+    wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 & 
+    __wait `jobs -p`
+    echo -ne "[$OS_VERSION]: installing libssh 0.5.0-1 x86_64 rpm..."
+    yum install libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    yum install libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+    __wait `jobs -p`
     print_log "Exit ${FUNCNAME[0]}"
 }
 
