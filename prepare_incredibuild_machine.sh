@@ -7,7 +7,6 @@ http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
-version=$(cat version.txt)
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
 OS_DISTRIBUTION=$(lsb_release -is)
@@ -54,7 +53,13 @@ function print_log() {
 }
 
 function print_version() {
-    print_log "Processing: $script_name package version: $version ....."
+    version_file=$PROJECT_DIR/OS/$OS_VERSION/version.txt 
+    if [ -f "$version_file" ];
+    then
+        print_log "Processing: $script_name package version: $(cat $version_file) ....."
+    else
+        print_log "Processing: $script_name package version: this package cannot support $OS_VERSION"
+    fi
 }
 
 function install_ubuntu_packages() {
@@ -79,23 +84,45 @@ function install_centos_packages() {
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
-    service httpd stop                  1>>$LOG 2>&1 &
-    service httpd start                 1>>$LOG 2>&1 &
-    chkconfig httpd --add               1>>$LOG 2>&1 &
-    chkconfig  httpd  on --level 235    1>>$LOG 2>&1 &
+    service httpd stop                        1>>$LOG 2>&1
+    service httpd start                       1>>$LOG 2>&1
+    chkconfig httpd --add                     1>>$LOG 2>&1
+    chkconfig  httpd  on --level 235          1>>$LOG 2>&1
     echo -ne "[$OS_VERSION]: install cachefilesd..."
     yum install -y cachefilesd 1>>LOG 2>&1 &
     __wait `jobs -p`
+    service cachefilesd start                 1>>$LOG 2>&1
+    chkconfig cachefilesd --add               1>>$LOG 2>&1
+    chkconfig  cachefilesd  on --level 235    1>>$LOG 2>&1
     echo -ne "[$OS_VERSION]: install nfs kernel server..."
     yum install -y nfs-utils 1>>LOG 2>&1 &
     __wait `jobs -p`
-    service nfs start                 1>>$LOG 2>&1 &
-    chkconfig nfs --add               1>>$LOG 2>&1 &
-    chkconfig  nfs  on --level 235    1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
-    wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: installing libssh 0.5.3 x86_64 rpm..."
-    yum install libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
+    service nfs start                         1>>$LOG 2>&1
+    chkconfig nfs --add                       1>>$LOG 2>&1
+    chkconfig  nfs  on --level 235            1>>$LOG 2>&1
+    ssh_file=libssh-0.5.0-1.el6.rf.x86_64.rpm
+    ssh_devel_file=libssh-devel-0.5.0-1.el6.rf.x86_64.rpm
+    if ! [ -f $ssh_file ]
+    then
+      echo -ne "[$OS_VERSION]: download $ssh_file ..."
+      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_file 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+      echo -ne "[$OS_VERSION]: installing $ssh_file ..."
+      yum install -y libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+    fi
+    if ! [ -f $ssh_devel_file ]
+    then
+      echo -ne "[$OS_VERSION]: download $ssh_devel_file ..."
+      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_devel_file 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+      echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
+      yum install -y libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+    fi
+    service sshd start                 1>>$LOG 2>&1
+    chkconfig sshd --add               1>>$LOG 2>&1
+    chkconfig  sshd  on --level 235    1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -148,9 +175,12 @@ function copy_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "stop incredibuild service..."
     service incredibuild stop 1>>$LOG 2>&1
+    print_log "stop incredibuild_helper service..."
+    service incredibuild_helper stop 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/default/incredibuild_profile.xml"         /etc/default/   -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/etc/init.d/incredibuild_helper"               /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
@@ -159,6 +189,7 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/bin/TestCoordinator"                          /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/XgConnectMe"                              /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgSubmit"                                 /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgWait"                                   /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/usr/lib/libincredibuildintr.so"               /usr/lib/       -v 1>>$LOG 2>&1
@@ -167,6 +198,11 @@ function copy_system_files() {
     ln -sf /etc/init.d/incredibuild /etc/rc3.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc4.d/S99incredibuild
     ln -sf /etc/init.d/incredibuild /etc/rc5.d/S99incredibuild
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc1.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc2.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc3.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc4.d/S99incredibuild_helper
+    ln -sf /etc/init.d/incredibuild_helper /etc/rc5.d/S99incredibuild_helper
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -186,7 +222,7 @@ function restart_3rd_side_services() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
-function prepare_ssh() {
+function prepare_ssh_ubuntu() {
     print_log "Enter ${FUNCNAME[0]}"
     mkdir -p $SSH_ROOT_DIR
     rm -f $SSH_ROOT_DIR/known_hosts
@@ -200,6 +236,24 @@ function prepare_ssh() {
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
     chmod 0600 $PERM_FILE 
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
+    print_log "Exit ${FUNCNAME[0]}"
+}
+
+function prepare_ssh_centos() {
+    print_log "Enter ${FUNCNAME[0]}"
+    mkdir -p $SSH_ROOT_DIR
+    rm -f $SSH_ROOT_DIR/known_hosts
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
+    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
+    chmod 0600 $PERM_FILE
+    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
+    chmod 0600 $PERM_FILE
+    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
+    restorecon -R -v /root/.ssh 1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -237,6 +291,8 @@ function start_services() {
     service boa start
     print_log "start incredibuild service..."
     service incredibuild start
+    print_log "start incredibuild service..."
+    service incredibuild_helper start
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -260,9 +316,22 @@ function remove_web() {
 
 function remove_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
+    rm /etc/rc1.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc2.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc3.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc4.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc5.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc6.d/S99incredibuild                       1>>$LOG 2>&1
+    rm /etc/rc1.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc2.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc3.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc4.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc5.d/S99incredibuild_helper                1>>$LOG 2>&1
+    rm /etc/rc6.d/S99incredibuild_helper                1>>$LOG 2>&1
     rm /etc/default/incredibuild_profile.xml            1>>$LOG 2>&1
     rm /etc/init.d/clean_incredibuild_log.sh            1>>$LOG 2>&1
     rm /etc/init.d/incredibuild                         1>>$LOG 2>&1
+    rm /etc/init.d/incredibuild_helper                  1>>$LOG 2>&1
     rm /etc/init.d/incredibuild_ssh_verification.sh     1>>$LOG 2>&1
     rm /etc/init.d/incredibuild_virtualization.sh       1>>$LOG 2>&1
     rm /etc/rsyslog.d/30-incredibuild.conf              1>>$LOG 2>&1
@@ -271,6 +340,7 @@ function remove_system_files() {
     rm /bin/TestCoordinator                             1>>$LOG 2>&1
     rm /bin/XgConsole                                   1>>$LOG 2>&1
     rm /bin/XgRegisterMe                                1>>$LOG 2>&1
+    rm /bin/XgConnectMe                                 1>>$LOG 2>&1
     rm /bin/XgSubmit                                    1>>$LOG 2>&1
     rm /bin/XgWait                                      1>>$LOG 2>&1
     rm /usr/lib/libincredibuildintr.so                  1>>$LOG 2>&1
@@ -288,7 +358,7 @@ function prepare_ubuntu_package() {
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh
+    prepare_ssh_ubuntu
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"
@@ -299,13 +369,12 @@ function prepare_centos_package() {
     print_log "configuring machine..."
     install_centos_packages
     setup_nfs
-    enable_cachefs
     set_user_env
     copy_system_files
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh
+    prepare_ssh_centos
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"
