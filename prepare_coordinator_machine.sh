@@ -8,7 +8,6 @@ PROJECT_DIR=$(pwd)
 DOMAN_SYSTEM_FILENAME=/etc/grid_server_domain.conf
 SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
-version=$(cat version.txt)
 OS_DISTRIBUTION=$(lsb_release -is)
 OS_RELEASE=$(lsb_release -rs)
 OS_CODE=$(lsb_release -cs)
@@ -47,7 +46,13 @@ function print_log() {
 }
 
 function print_version() {
-    print_log "Processing: $script_name package version: $version ....."
+    version_file=$PROJECT_DIR/OS/$OS_VERSION/version.txt 
+    if [ -f "$version_file" ];
+    then
+        print_log "Processing: $script_name package version: $(cat $version_file) ....."
+    else
+        print_log "Processing: $script_name package version: this package cannot support $OS_VERSION"
+    fi
 }
 
 function install_ubuntu_packages() {
@@ -71,14 +76,30 @@ function install_centos_packages() {
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
-    service httpd stop                  1>>$LOG 2>&1 &
-    service httpd start                 1>>$LOG 2>&1 &
-    chkconfig httpd --add               1>>$LOG 2>&1 &
-    chkconfig  httpd  on --level 235    1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: download libssh 0.5.3 x86_64 rpm..."
-    wget http://ftp5.gwdg.de/pub/opensuse/repositories/network:/synchronization:/files/CentOS_CentOS-6/x86_64/libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
-    echo -ne "[$OS_VERSION]: installing libssh 0.5.3 x86_64 rpm..."
-    yum install libssh-devel-0.5.3-14.1.x86_64.rpm 1>>$LOG 2>&1 &
+    service httpd stop                  1>>$LOG 2>&1
+    service httpd start                 1>>$LOG 2>&1
+    chkconfig httpd --add               1>>$LOG 2>&1
+    chkconfig  httpd  on --level 235    1>>$LOG 2>&1
+    ssh_file=libssh-0.5.0-1.el6.rf.x86_64.rpm
+    ssh_devel_file=libssh-devel-0.5.0-1.el6.rf.x86_64.rpm
+    if ! [ -f $ssh_file ]
+    then 
+      echo -ne "[$OS_VERSION]: download $ssh_file ..."
+      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_file 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+      echo -ne "[$OS_VERSION]: installing $ssh_file ..."
+      yum install libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+    fi
+    if ! [ -f $ssh_devel_file ]
+    then 
+      echo -ne "[$OS_VERSION]: download $ssh_devel_file ..."
+      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_devel_file 1>>$LOG 2>&1 & 
+      __wait `jobs -p`
+      echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
+      yum install libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
+      __wait `jobs -p`
+    fi
     print_log "Exit ${FUNCNAME[0]}"
 }
 

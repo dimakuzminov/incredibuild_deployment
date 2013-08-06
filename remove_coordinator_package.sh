@@ -68,11 +68,15 @@ function remove_scripts() {
 
 function remove_ssh_addon() {
     echo "Removing ssh addon files:"
-    for i in $SSH_ADDONS;
-    do
-        echo "removing $i";
-        rm -vfr $i;
-    done
+    if [[ -e /bin/GridServer ]]; then
+        echo "ssh is not removing, it shared with GridServer"
+    else    
+        for i in $SSH_ADDONS;
+        do
+            echo "removing $i";
+            rm -vfr $i;
+        done
+    fi
 }
 
 function remove_user() {

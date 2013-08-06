@@ -12,6 +12,7 @@ INCREDIBUILD_BINARY_FILES="\
     /bin/XgConsole \
     /bin/XgWait \
     /bin/XgRegisterMe \
+    /bin/XgConnectMe \
     /usr/lib/libincredibuildintr.so"
 
 INCREDIBUILD_SYSTEM_SCRIPTS="\
@@ -20,8 +21,20 @@ INCREDIBUILD_SYSTEM_SCRIPTS="\
     /etc/init.d/clean_incredibuild_log.sh \
     /etc/init.d/incredibuild_virtualization.sh \
     /etc/init.d/incredibuild \
+    /etc/init.d/incredibuild_helper \
     /etc/rsyslog.d/30-incredibuild.conf \
+    /etc/rc1.d/S99incredibuild \
+    /etc/rc2.d/S99incredibuild \
+    /etc/rc3.d/S99incredibuild \
+    /etc/rc4.d/S99incredibuild \
     /etc/rc5.d/S99incredibuild \
+    /etc/rc6.d/S99incredibuild \
+    /etc/rc1.d/S99incredibuild_helper \
+    /etc/rc2.d/S99incredibuild_helper \
+    /etc/rc3.d/S99incredibuild_helper \
+    /etc/rc4.d/S99incredibuild_helper \
+    /etc/rc5.d/S99incredibuild_helper \
+    /etc/rc6.d/S99incredibuild_helper \
     /etc/default/incredibuild"
 
 INCREDIBUILD_SERVICES=" \
@@ -78,11 +91,15 @@ function remove_scripts() {
 
 function remove_ssh_addon() {
     echo "Removing ssh addon files:"
-    for i in $SSH_ADDONS;
-    do
-        echo "removing $i";
-        rm -vfr $i;
-    done
+    if [[ -e /bin/GridCoordinator ]]; then
+        echo "ssh is not removing, it shared with Coordinator"
+    else
+        for i in $SSH_ADDONS;
+        do
+            echo "removing $i";
+            rm -vfr $i;
+        done
+    fi
 }
 
 function remove_user() {
