@@ -23,12 +23,12 @@ function connect_remote() {
         if [ -z "$MOUNT_POINTS" ];
         then
             echo "Connecting to $MACHINE_NAME,  No mount points";
-            echo $PASSWORD | sudo -S mount $MACHINE_NAME:/ $MACHINE_NAME_ROOT/ $CACHE_FS_OPTION;
+            mount $MACHINE_NAME:/ $MACHINE_NAME_ROOT/ $CACHE_FS_OPTION;
         else
             echo "Connecting to $MACHINE_NAME,  Found mount points";
             for i in $MOUNT_POINTS;
             do
-                echo $PASSWORD | sudo -S mount $MACHINE_NAME:/$i $MACHINE_NAME_ROOT/$i $CACHE_FS_OPTION;
+                mount $MACHINE_NAME:/$i $MACHINE_NAME_ROOT/$i $CACHE_FS_OPTION;
             done
         fi
     else
@@ -50,7 +50,7 @@ function prepare_virtualization() {
     if [ -z "$result" ];
     then
         echo "setup dev for $MACHINE_NAME";
-        echo $PASSWORD | sudo -S mount -o bind /dev $MACHINE_NAME_ROOT/dev;
+        mount -o bind /dev $MACHINE_NAME_ROOT/dev;
     else
         echo "$MACHINE_NAME dev was ready";
     fi
@@ -58,7 +58,7 @@ function prepare_virtualization() {
     if [ -z "$result" ];
     then
         echo "setup proc for $MACHINE_NAME";
-        echo $PASSWORD | sudo -S mount -t proc none $MACHINE_NAME_ROOT/proc;
+        mount -t proc none $MACHINE_NAME_ROOT/proc;
     else
         echo "$MACHINE_NAME proc was ready";
     fi
