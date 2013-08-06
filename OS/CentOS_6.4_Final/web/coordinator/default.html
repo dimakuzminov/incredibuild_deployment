@@ -47,13 +47,14 @@ void setup()
     cpu_freq_offset=cores_offset+70;
     cpu_load_offset=cpu_freq_offset+80;
     operation_system_offset=cpu_load_offset+80;
-    incredibuild_version_offset=operation_system_offset+170;
+    incredibuild_version_offset=operation_system_offset+190;
     model_name_offset=incredibuild_version_offset+150;
     total_length=model_name_offset+300;
     if ( total_length > width ) {
         width = total_length;
     }
     size(width, height);
+    timestamp = 0;
 }
 
 function _timeFormat(time)
@@ -123,6 +124,14 @@ void draw()
         size(width, height);
     }
     _cleanBackground();
+    text( "Service alive time["+_timeFormat(timestamp)+"]", indentW, indentH );
+    indentH += 2*cellH;
+    if (helper_machine_manager_data.timestamp == timestamp) {
+        _setColor( 255, 0, 0 );
+        text( "Coordinator is not running, please start service and refresh this page", indentW, indentH );
+        return;
+    }
+    timestamp = helper_machine_manager_data.timestamp;
     if (helper_machine_manager_data) {
         text( "List of Helper Machines", indentW, indentH );
         indentH += cellH;
@@ -143,7 +152,13 @@ void draw()
             text( helper_machine_manager_data.machines[s].references,       indentW + busy_counter_offset,          indentH );
             text( helper_machine_manager_data.machines[s].hostname,         indentW + hostname_offset,              indentH );
             text( helper_machine_manager_data.machines[s].memory,           indentW + memory_offset,                indentH );
-            text( helper_machine_manager_data.machines[s].cpu_load,         indentW + cpu_load_offset,              indentH );
+            if (helper_machine_manager_data.machines[s].cpu_load > 70) {
+              _setColor(255,0,0);
+            } else if (helper_machine_manager_data.machines[s].cpu_load > 50) {
+              _setColor(255,128,0);
+            }
+            text( helper_machine_manager_data.machines[s].cpu_load+" %",    indentW + cpu_load_offset,              indentH );
+            _setColor(0, 0, 0);
             text( helper_machine_manager_data.machines[s].cores,            indentW + cores_offset,                 indentH );
             text( helper_machine_manager_data.machines[s].cpu_freq,         indentW + cpu_freq_offset,              indentH );
             text( helper_machine_manager_data.machines[s].operating_system, indentW + operation_system_offset,      indentH );
