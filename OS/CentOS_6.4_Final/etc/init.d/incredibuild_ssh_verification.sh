@@ -20,6 +20,7 @@ function verify_machine_ssh_config {
         sudo cp $PERM_FILE $SSH_ROOT_DIR/ids/$host_name/id_rsa; 
         sudo chmod 0600 $SSH_ROOT_DIR/ids/$host_name/id_rsa;
         sudo sh -c "ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host_name/id_rsa.pub";
+        restorecon -R -v /root/.ssh;
     fi
 }
 
