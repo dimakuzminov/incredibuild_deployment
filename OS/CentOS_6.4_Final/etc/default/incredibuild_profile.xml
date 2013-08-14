@@ -5,6 +5,7 @@
         <Tool DummyMode="false" />
         <Tool MonitorEnable="false" />
         <Tool Filename="sh" AllowIntercept="true" />
+        <Tool Filename="bash" AllowIntercept="true" />
         <Tool Filename="waf" AllowIntercept="true" />
         <Tool Filename="python" AllowIntercept="true" />
         <Tool Filename="cmake" AllowIntercept="true" />
@@ -15,10 +16,31 @@
         <Tool Filename="g++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
         <Tool Filename="c++" AllowRemote="true" />
         <Tool Filename="c++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="cc" AllowRemote="true" />
+        <Tool Filename="cc" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
         <Tool Filename="cc1plus" AllowRemote="true" />
         <Tool Filename="cc1" AllowRemote="true" />
         <Tool Filename="collect2" AllowLocal="true" />
-        <Tool Filename="LD" AllowLocal="true" />
         <Tool Filename="ld" AllowLocal="true" />
+        <Tool Filename="ar" AllowLocal="true" />
+        <!--arm-->
+        <Tool Filename="arm-eabi-gcc" AllowRemote="true" />
+        <Tool Filename="arm-eabi-gcc" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="arm-eabi-g++" AllowRemote="true" />
+        <Tool Filename="arm-eabi-g++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="arm-eabi-c++" AllowRemote="true" />
+        <Tool Filename="arm-eabi-c++" AllowLocal="true" ArgumentsExclude=" -c : -E : -S " />
+        <Tool Filename="arm-eabi-cc1plus" AllowRemote="true" />
+        <Tool Filename="arm-eabi-cc1" AllowRemote="true" />
+        <Tool Filename="arm-eabi-collect2" AllowLocal="true" />
+        <Tool Filename="arm-eabi-ld" AllowLocal="true" />
+        <Tool Filename="arm-eabi-ar" AllowLocal="true" />
+        <!--android-->
+        <Tool Filename="java" AllowRemote="true" />
+        <Tool Filename="javac" AllowRemote="true" />
+        <Tool Filename="xargs" AllowIntercept="true" />
+        <Tool Filename="aidl" AllowRemote="true" />
+        <Tool Filename="acp" AllowRemote="true" />
+        <!---->
     </Tools>
 </Profile>
