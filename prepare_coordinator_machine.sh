@@ -136,7 +136,11 @@ function copy_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "stop incredibuild_coordinator service..."
     service incredibuild_coordinator stop
+    # we may have problem with old logger system, so remove risky file
+    rm -vfr /var/log/incredibuild                                                       1>>$LOG 2>&1
+    mkdir -v /var/log/incredibuild                                                      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_coordinator"          /etc/init.d/      1>>$LOG 2>&1
+    cp -v "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/   1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/bin/GridCoordinator"                          /bin/             1>>$LOG 2>&1
@@ -145,9 +149,10 @@ function copy_system_files() {
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc3.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc4.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc5.d/S98incredibuild_coordinator
+    ln -sf /etc/init.d/incredibuild_coordinator /etc/rc6.d/S98incredibuild_coordinator
     if [[ -f $grid_domain_file ]];
     then
-        cp -fvr $grid_domain_file $DOMAN_SYSTEM_FILENAME 1>>$LOG 2>&1; 
+        cp -fvr $grid_domain_file $DOMAN_SYSTEM_FILENAME                                1>>$LOG 2>&1; 
     else
         touch $DOMAN_SYSTEM_FILENAME;
     fi
@@ -159,7 +164,7 @@ function copy_web_files() {
     mkdir -pv $http_repository/coordinator                                              1>>$LOG 2>&1
     cp -vf "$PACKAGE_DIR/web/jquery.js"                  $http_repository/              1>>$LOG 2>&1
     cp -vf "$PACKAGE_DIR/web/processing.js"              $http_repository/              1>>$LOG 2>&1
-    cp -vf "$PACKAGE_DIR/web/coordinator/default.html"   $http_repository/coordinator   1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/coordinator/default.html"   $http_repository/coordinator/  1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 

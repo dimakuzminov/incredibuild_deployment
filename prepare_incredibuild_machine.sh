@@ -15,6 +15,7 @@ OS_CODE=$(lsb_release -cs)
 OS_VERSION=${OS_DISTRIBUTION}_${OS_RELEASE}_${OS_CODE}
 PACKAGE_DIR=OS/$OS_VERSION
 LOG=$script_name.log
+REMOVE_INCREDIBUILD_PACKAGE=${PROJECT_DIR}/remove_incredibuild_package.sh
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -71,6 +72,7 @@ function install_ubuntu_packages() {
     apt-get install -y nfs-kernel-server cachefilesd libssh-dev boa ssh 1>>LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    service boa start
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -175,6 +177,9 @@ function copy_system_files() {
     service incredibuild stop 1>>$LOG 2>&1
     print_log "stop incredibuild_helper service..."
     service incredibuild_helper stop 1>>$LOG 2>&1
+    # we may have problem with old logger system, so remove risky file
+    rm -vfr /var/log/incredibuild                                                     1>>$LOG 2>&1
+    mkdir -v /var/log/incredibuild                                                    1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/default/incredibuild_profile.xml"         /etc/default/   -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
@@ -183,8 +188,6 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/GridServer"                               /bin/           -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/bin/SlotStatistics"                           /bin/           -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/bin/TestCoordinator"                          /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConnectMe"                              /bin/           -v 1>>$LOG 2>&1
@@ -215,8 +218,8 @@ function copy_web_files() {
 
 function restart_3rd_side_services() {
     print_log "Enter ${FUNCNAME[0]}"
-    service rsyslog stop 1>>$LOG 2>&1
-    service boa stop     1>>$LOG 2>&1
+    service rsyslog stop    1>>$LOG 2>&1
+    service rsyslog start   1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -268,11 +271,9 @@ function register_machine() {
         then
             print_log "local machine is registered"
         else
-            print_log "!!! Error cannot acccess correctly coordinator machine $coordinator_machine"
+            print_log "!!! Error cannot access correctly coordinator machine $coordinator_machine"
             print_log "!!! Uninstall process..."
-            remove_web
-            remove_user
-            remove_system_files
+            $REMOVE_INCREDIBUILD_PACKAGE
             exit 1
         fi
     fi
@@ -284,64 +285,10 @@ EOF
 
 function start_services() {
     print_log "Enter ${FUNCNAME[0]}"
-    print_log "start 3rd side part services..."
-    service rsyslog start
-    service boa start
     print_log "start incredibuild service..."
     service incredibuild start
     print_log "start incredibuild service..."
     service incredibuild_helper start
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_user() {
-    print_log "Enter ${FUNCNAME[0]}"
-    print_log "Removing user $user :"
-    userdel $user 1>>$LOG 2>&1
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_web() {
-    print_log "Enter ${FUNCNAME[0]}"
-    print_log "Removing web gui:"
-    if [ -d "$http_repository/coordinator" ]; then
-        rm -vfr $http_repository/build_monitor 1>>$LOG 2>&1;
-    else
-        rm -vfr $http_repository  1>>$LOG 2>&1;
-    fi
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_system_files() {
-    print_log "Enter ${FUNCNAME[0]}"
-    rm /etc/rc1.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc2.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc3.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc4.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc5.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc6.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc1.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc2.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc3.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc4.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc5.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc6.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/default/incredibuild_profile.xml            1>>$LOG 2>&1
-    rm /etc/init.d/clean_incredibuild_log.sh            1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild                         1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_helper                  1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_ssh_verification.sh     1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_virtualization.sh       1>>$LOG 2>&1
-    rm /etc/rsyslog.d/30-incredibuild.conf              1>>$LOG 2>&1
-    rm /bin/GridServer                                  1>>$LOG 2>&1
-    rm /bin/SlotStatistics                              1>>$LOG 2>&1
-    rm /bin/TestCoordinator                             1>>$LOG 2>&1
-    rm /bin/XgConsole                                   1>>$LOG 2>&1
-    rm /bin/XgRegisterMe                                1>>$LOG 2>&1
-    rm /bin/XgConnectMe                                 1>>$LOG 2>&1
-    rm /bin/XgSubmit                                    1>>$LOG 2>&1
-    rm /bin/XgWait                                      1>>$LOG 2>&1
-    rm /usr/lib/libincredibuildintr.so                  1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
