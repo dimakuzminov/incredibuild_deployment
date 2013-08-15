@@ -72,6 +72,7 @@ function install_ubuntu_packages() {
     apt-get install -y nfs-kernel-server cachefilesd libssh-dev boa ssh 1>>LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    service boa stop
     service boa start
     print_log "Exit ${FUNCNAME[0]}"
 }
