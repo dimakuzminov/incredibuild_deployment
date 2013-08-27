@@ -15,6 +15,7 @@ OS_CODE=$(lsb_release -cs)
 OS_VERSION=${OS_DISTRIBUTION}_${OS_RELEASE}_${OS_CODE}
 PACKAGE_DIR=OS/$OS_VERSION
 LOG=$script_name.log
+REMOVE_INCREDIBUILD_PACKAGE=${PROJECT_DIR}/remove_incredibuild_package.sh
 
 function __wait() {
     while [ -e /proc/$1 ]
@@ -71,16 +72,18 @@ function install_ubuntu_packages() {
     apt-get install -y nfs-kernel-server cachefilesd libssh-dev boa ssh 1>>LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    service boa stop
+    service boa start
     print_log "Exit ${FUNCNAME[0]}"
 }
 
 function install_centos_packages() {
     print_log "Enter ${FUNCNAME[0]}"
     echo -ne "[$OS_VERSION]: updating software list..."
-    yum  update -y 1>>$LOG 2>&1 &
+    yum  update -y                            1>>$LOG 2>&1 &
     __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install Apache..."
-    yum install -y httpd  1>>$LOG 2>&1 &
+    yum install -y httpd                      1>>$LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
@@ -100,29 +103,27 @@ function install_centos_packages() {
     service nfs start                         1>>$LOG 2>&1
     chkconfig nfs --add                       1>>$LOG 2>&1
     chkconfig  nfs  on --level 235            1>>$LOG 2>&1
-    ssh_file=libssh-0.5.0-1.el6.rf.x86_64.rpm
-    ssh_devel_file=libssh-devel-0.5.0-1.el6.rf.x86_64.rpm
+    ssh_file=3rd_side/libssh-${OS_VERSION}.x86_64.rpm
+    ssh_devel_file=3rd_side/libssh-devel-${OS_VERSION}.x86_64.rpm
     if ! [ -f $ssh_file ]
-    then 
-      echo -ne "[$OS_VERSION]: download $ssh_file ..."
-      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_file 1>>$LOG 2>&1 &
-      __wait `jobs -p`
-      echo -ne "[$OS_VERSION]: installing $ssh_file ..."
-      yum install -y libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
-      __wait `jobs -p`
+    then
+        echo "[$OS_VERSION]: cannot find $ssh_file"
+        exit
     fi
+    echo -ne "[$OS_VERSION]: installing $ssh_file ..."
+    yum install -y $ssh_file                  1>>$LOG 2>&1 &
+    __wait `jobs -p`
     if ! [ -f $ssh_devel_file ]
-    then 
-      echo -ne "[$OS_VERSION]: download $ssh_devel_file ..."
-      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_devel_file 1>>$LOG 2>&1 & 
-      __wait `jobs -p`
-      echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
-      yum install -y libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
-      __wait `jobs -p`
+    then
+        echo "[$OS_VERSION]: cannot find $ssh_devel_file"
+        exit
     fi
-    service sshd start                 1>>$LOG 2>&1
-    chkconfig sshd --add               1>>$LOG 2>&1
-    chkconfig  sshd  on --level 235    1>>$LOG 2>&1
+    echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
+    yum install -y $ssh_devel_file            1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    chkconfig sshd --add                      1>>$LOG 2>&1
+    chkconfig  sshd  on --level 235           1>>$LOG 2>&1
+    service sshd start                        1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -177,6 +178,9 @@ function copy_system_files() {
     service incredibuild stop 1>>$LOG 2>&1
     print_log "stop incredibuild_helper service..."
     service incredibuild_helper stop 1>>$LOG 2>&1
+    # we may have problem with old logger system, so remove risky file
+    rm -vfr /var/log/incredibuild                                                     1>>$LOG 2>&1
+    mkdir -v /var/log/incredibuild                                                    1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/default/incredibuild_profile.xml"         /etc/default/   -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
@@ -185,8 +189,6 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/GridServer"                               /bin/           -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/bin/SlotStatistics"                           /bin/           -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/bin/TestCoordinator"                          /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConnectMe"                              /bin/           -v 1>>$LOG 2>&1
@@ -217,8 +219,8 @@ function copy_web_files() {
 
 function restart_3rd_side_services() {
     print_log "Enter ${FUNCNAME[0]}"
-    service rsyslog stop 1>>$LOG 2>&1
-    service boa stop     1>>$LOG 2>&1
+    service rsyslog stop    1>>$LOG 2>&1
+    service rsyslog start   1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -251,7 +253,7 @@ function prepare_ssh_centos() {
     echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
     chmod 0600 $PERM_FILE
     cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
-    chmod 0600 $PERM_FILE 
+    chmod 0600 $PERM_FILE
     ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
     restorecon -R -v /root/.ssh 1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
@@ -270,11 +272,9 @@ function register_machine() {
         then
             print_log "local machine is registered"
         else
-            print_log "!!! Error cannot acccess correctly coordinator machine $coordinator_machine"
+            print_log "!!! Error cannot access correctly coordinator machine $coordinator_machine"
             print_log "!!! Uninstall process..."
-            remove_web
-            remove_user
-            remove_system_files
+            $REMOVE_INCREDIBUILD_PACKAGE
             exit 1
         fi
     fi
@@ -286,64 +286,10 @@ EOF
 
 function start_services() {
     print_log "Enter ${FUNCNAME[0]}"
-    print_log "start 3rd side part services..."
-    service rsyslog start
-    service boa start
     print_log "start incredibuild service..."
     service incredibuild start
     print_log "start incredibuild service..."
     service incredibuild_helper start
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_user() {
-    print_log "Enter ${FUNCNAME[0]}"
-    print_log "Removing user $user :"
-    userdel $user 1>>$LOG 2>&1
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_web() {
-    print_log "Enter ${FUNCNAME[0]}"
-    print_log "Removing web gui:"
-    if [ -d "$http_repository/coordinator" ]; then
-        rm -vfr $http_repository/build_monitor 1>>$LOG 2>&1;
-    else
-        rm -vfr $http_repository  1>>$LOG 2>&1;
-    fi
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function remove_system_files() {
-    print_log "Enter ${FUNCNAME[0]}"
-    rm /etc/rc1.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc2.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc3.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc4.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc5.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc6.d/S99incredibuild                       1>>$LOG 2>&1
-    rm /etc/rc1.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc2.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc3.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc4.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc5.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/rc6.d/S99incredibuild_helper                1>>$LOG 2>&1
-    rm /etc/default/incredibuild_profile.xml            1>>$LOG 2>&1
-    rm /etc/init.d/clean_incredibuild_log.sh            1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild                         1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_helper                  1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_ssh_verification.sh     1>>$LOG 2>&1
-    rm /etc/init.d/incredibuild_virtualization.sh       1>>$LOG 2>&1
-    rm /etc/rsyslog.d/30-incredibuild.conf              1>>$LOG 2>&1
-    rm /bin/GridServer                                  1>>$LOG 2>&1
-    rm /bin/SlotStatistics                              1>>$LOG 2>&1
-    rm /bin/TestCoordinator                             1>>$LOG 2>&1
-    rm /bin/XgConsole                                   1>>$LOG 2>&1
-    rm /bin/XgRegisterMe                                1>>$LOG 2>&1
-    rm /bin/XgConnectMe                                 1>>$LOG 2>&1
-    rm /bin/XgSubmit                                    1>>$LOG 2>&1
-    rm /bin/XgWait                                      1>>$LOG 2>&1
-    rm /usr/lib/libincredibuildintr.so                  1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 

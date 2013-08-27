@@ -58,10 +58,10 @@ function print_version() {
 function install_ubuntu_packages() {
     print_log "Enter ${FUNCNAME[0]}"
     echo -ne "[$OS_VERSION]: updating software list..."
-    apt-get update -y 1>>$LOG 2>&1 &
+    apt-get update -y                   1>>$LOG 2>&1 &
     __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install 3rd party packages..."
-    apt-get install -y libssh-dev ssh 1>>$LOG 2>&1 &
+    apt-get install -y libssh-dev ssh   1>>$LOG 2>&1 &
     __wait `jobs -p`
     print_log "Exit ${FUNCNAME[0]}"
 }
@@ -69,37 +69,38 @@ function install_ubuntu_packages() {
 function install_centos_packages() {
     print_log "Enter ${FUNCNAME[0]}"
     echo -ne "[$OS_VERSION]: updating software list..."
-    yum  update -y 1>>$LOG 2>&1 &
+    yum  update -y                            1>>$LOG 2>&1 &
     __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install Apache..."
-    yum install -y httpd  1>>$LOG 2>&1 &
+    yum install -y httpd                      1>>$LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Listen 80\>;Listen 8080;" -i /etc/httpd/conf/httpd.conf
     sed "s;/var/www/html;/var/www;" -i /etc/httpd/conf/httpd.conf
-    service httpd stop                  1>>$LOG 2>&1
-    service httpd start                 1>>$LOG 2>&1
-    chkconfig httpd --add               1>>$LOG 2>&1
-    chkconfig  httpd  on --level 235    1>>$LOG 2>&1
-    ssh_file=libssh-0.5.0-1.el6.rf.x86_64.rpm
-    ssh_devel_file=libssh-devel-0.5.0-1.el6.rf.x86_64.rpm
+    service httpd stop                        1>>$LOG 2>&1
+    service httpd start                       1>>$LOG 2>&1
+    chkconfig httpd --add                     1>>$LOG 2>&1
+    chkconfig  httpd  on --level 235          1>>$LOG 2>&1
+    ssh_file=3rd_side/libssh-${OS_VERSION}.x86_64.rpm
+    ssh_devel_file=3rd_side/libssh-devel-${OS_VERSION}.x86_64.rpm
     if ! [ -f $ssh_file ]
-    then 
-      echo -ne "[$OS_VERSION]: download $ssh_file ..."
-      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_file 1>>$LOG 2>&1 &
-      __wait `jobs -p`
-      echo -ne "[$OS_VERSION]: installing $ssh_file ..."
-      yum install libssh-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
-      __wait `jobs -p`
+    then
+        echo "[$OS_VERSION]: cannot find $ssh_file"
+        exit
     fi
+    echo -ne "[$OS_VERSION]: installing $ssh_file ..."
+    yum install -y $ssh_file                  1>>$LOG 2>&1 &
+    __wait `jobs -p`
     if ! [ -f $ssh_devel_file ]
-    then 
-      echo -ne "[$OS_VERSION]: download $ssh_devel_file ..."
-      wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/$ssh_devel_file 1>>$LOG 2>&1 & 
-      __wait `jobs -p`
-      echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
-      yum install libssh-devel-0.5.0-1.el6.rf.x86_64.rpm 1>>$LOG 2>&1 &
-      __wait `jobs -p`
+    then
+        echo "[$OS_VERSION]: cannot find $ssh_devel_file"
+        exit
     fi
+    echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
+    yum install -y $ssh_devel_file            1>>$LOG 2>&1 &
+    __wait `jobs -p`
+    chkconfig sshd --add                      1>>$LOG 2>&1
+    chkconfig  sshd  on --level 235           1>>$LOG 2>&1
+    service sshd start                        1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -135,7 +136,11 @@ function copy_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "stop incredibuild_coordinator service..."
     service incredibuild_coordinator stop
+    # we may have problem with old logger system, so remove risky file
+    rm -vfr /var/log/incredibuild                                                       1>>$LOG 2>&1
+    mkdir -v /var/log/incredibuild                                                      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_coordinator"          /etc/init.d/      1>>$LOG 2>&1
+    cp -v "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/   1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/bin/GridCoordinator"                          /bin/             1>>$LOG 2>&1
@@ -144,9 +149,10 @@ function copy_system_files() {
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc3.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc4.d/S98incredibuild_coordinator
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc5.d/S98incredibuild_coordinator
+    ln -sf /etc/init.d/incredibuild_coordinator /etc/rc6.d/S98incredibuild_coordinator
     if [[ -f $grid_domain_file ]];
     then
-        cp -fvr $grid_domain_file $DOMAN_SYSTEM_FILENAME 1>>$LOG 2>&1; 
+        cp -fvr $grid_domain_file $DOMAN_SYSTEM_FILENAME                                1>>$LOG 2>&1; 
     else
         touch $DOMAN_SYSTEM_FILENAME;
     fi
@@ -158,7 +164,7 @@ function copy_web_files() {
     mkdir -pv $http_repository/coordinator                                              1>>$LOG 2>&1
     cp -vf "$PACKAGE_DIR/web/jquery.js"                  $http_repository/              1>>$LOG 2>&1
     cp -vf "$PACKAGE_DIR/web/processing.js"              $http_repository/              1>>$LOG 2>&1
-    cp -vf "$PACKAGE_DIR/web/coordinator/default.html"   $http_repository/coordinator   1>>$LOG 2>&1
+    cp -vf "$PACKAGE_DIR/web/coordinator/default.html"   $http_repository/coordinator/  1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 

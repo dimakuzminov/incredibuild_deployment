@@ -4,6 +4,7 @@ script_name=$0
 PROJECT_DIR=$(pwd)
 SSH_ROOT_DIR=/root/.ssh
 WEB_DIR=/var/www/incredibuild
+LOG=${script_name}.log
 
 INCREDIBUILD_BINARY_FILES="\
     /bin/SlotStatistics \
@@ -17,8 +18,6 @@ INCREDIBUILD_BINARY_FILES="\
 
 INCREDIBUILD_SYSTEM_SCRIPTS="\
     /etc/default/incredibuild_profile.xml \
-    /etc/init.d/incredibuild_ssh_verification.sh \
-    /etc/init.d/clean_incredibuild_log.sh \
     /etc/init.d/incredibuild_virtualization.sh \
     /etc/init.d/incredibuild \
     /etc/init.d/incredibuild_helper \
@@ -38,7 +37,8 @@ INCREDIBUILD_SYSTEM_SCRIPTS="\
     /etc/default/incredibuild"
 
 INCREDIBUILD_SERVICES=" \
-    incredibuild"
+    incredibuild \
+    incredibuild_helper"
 
 SSH_ADDONS="\
     $SSH_ROOT_DIR/incredibuild.pem \
@@ -51,6 +51,7 @@ function check_conditions() {
         echo "please run sudo $script_name";
         exit
     fi
+    rm $LOG
 }
 
 function stop_services() {
@@ -65,9 +66,9 @@ function stop_services() {
 function remove_web() {
     echo "Removing web gui:"
     if [ -d "$WEB_DIR/coordinator" ]; then
-        rm -vfr $WEB_DIR/build_monitor 1>>$LOG 2>&1;
+        rm -vfr $WEB_DIR/build_monitor                          1>>$LOG 2>&1;
     else
-        rm -vfr $WEB_DIR  1>>$LOG 2>&1;
+        rm -vfr $WEB_DIR                                        1>>$LOG 2>&1;
     fi
 }
 
@@ -76,7 +77,7 @@ function remove_binaries() {
     for i in $INCREDIBUILD_BINARY_FILES;
     do
         echo "removing $i";
-        rm -vfr $i;
+        rm -vfr $i                                              1>>$LOG 2>&1;
     done
 }
 
@@ -85,8 +86,12 @@ function remove_scripts() {
     for i in $INCREDIBUILD_SYSTEM_SCRIPTS;
     do
         echo "removing $i";
-        rm -vfr $i;
+        rm -vfr $i                                              1>>$LOG 2>&1;
     done
+    if ! [ -f /bin/GridCoordinator ]; then
+        rm -vfr /etc/init.d/incredibuild_ssh_verification.sh    1>>$LOG 2>&1;
+        rm -vfr /etc/init.d/clean_incredibuild_log.sh           1>>$LOG 2>&1;
+    fi
 }
 
 function remove_ssh_addon() {
@@ -97,14 +102,16 @@ function remove_ssh_addon() {
         for i in $SSH_ADDONS;
         do
             echo "removing $i";
-            rm -vfr $i;
+            rm -vfr $i                                          1>>$LOG 2>&1;
         done
     fi
 }
 
 function remove_user() {
-    echo "Removing user $user :"
-    userdel $user
+    if ! [ -f /bin/GridCoordinator ]; then
+        echo "Removing user $user :"
+        userdel $user                                           1>>$LOG 2>&1;
+    fi
 }
 
 check_conditions
