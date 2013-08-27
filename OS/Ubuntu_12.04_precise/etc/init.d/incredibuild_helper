@@ -1,6 +1,6 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-DAEMON=/bin/XgConnectMe
-NAME=XgConnectMe
+DAEMON=/bin/GridHelper
+NAME=GridHelper
 DESC="Incredibuild helper machine I'm alive service"
 ARGS=""
 pidfile=/var/run/incredibuild_helper.pid

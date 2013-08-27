@@ -47,7 +47,7 @@ void setup()
     cpu_freq_offset=cores_offset+70;
     cpu_load_offset=cpu_freq_offset+80;
     operation_system_offset=cpu_load_offset+80;
-    incredibuild_version_offset=operation_system_offset+190;
+    incredibuild_version_offset=operation_system_offset+200;
     model_name_offset=incredibuild_version_offset+150;
     total_length=model_name_offset+300;
     if ( total_length > width ) {
@@ -87,6 +87,31 @@ function _cleanBackground()
     _setColor(0,0,0);
 }
 
+function _drawMachineListTable(lines, start_y)
+{
+    _setColor(0, 0, 0);
+    y = start_y;
+    ymargin = cellH*4/5;
+    xmargin = 5;
+    line(indentW-xmargin, y-ymargin, width-xmargin, y-ymargin);
+    y += cellH;
+    for(s=0; s <= lines; s++) {
+        line(indentW+connected_offset-xmargin,              y-ymargin, indentW+connected_offset-xmargin,            y-ymargin-cellH);
+        line(indentW+busy_counter_offset-xmargin,           y-ymargin, indentW+busy_counter_offset-xmargin,         y-ymargin-cellH);
+        line(indentW+hostname_offset-xmargin,               y-ymargin, indentW+hostname_offset-xmargin,             y-ymargin-cellH);
+        line(indentW+cores_offset-xmargin,                  y-ymargin, indentW+cores_offset-xmargin,                y-ymargin-cellH);
+        line(indentW+memory_offset-xmargin,                 y-ymargin, indentW+memory_offset-xmargin,               y-ymargin-cellH);
+        line(indentW+operation_system_offset-xmargin,       y-ymargin, indentW+operation_system_offset-xmargin,     y-ymargin-cellH);
+        line(indentW+cpu_load_offset-xmargin,               y-ymargin, indentW+cpu_load_offset-xmargin,             y-ymargin-cellH);
+        line(indentW+cpu_freq_offset-xmargin,               y-ymargin, indentW+cpu_freq_offset-xmargin,             y-ymargin-cellH);
+        line(indentW+model_name_offset-xmargin,             y-ymargin, indentW+model_name_offset-xmargin,           y-ymargin-cellH);
+        line(indentW+incredibuild_version_offset-xmargin,   y-ymargin, indentW+incredibuild_version_offset-xmargin, y-ymargin-cellH);
+        line(width-xmargin,                                 y-ymargin, width-xmargin,                               y-ymargin-cellH);
+        line(indentW-xmargin,                               y-ymargin, width-xmargin,                               y-ymargin);
+        y += cellH;
+    }
+}
+
 void draw()
 {
     indentH = indentHStart;
@@ -117,7 +142,7 @@ void draw()
     });
     var manager_data = eval("("+manager_json.responseText+")");
     width = indentW + cellW * 10;
-    var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 + 
+    var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 +
                               cellH * manager_data.build_machines.length + cellH * 2;
     if( newHeight > height ) {
         height = newHeight;
@@ -135,6 +160,7 @@ void draw()
     if (helper_machine_manager_data) {
         text( "List of Helper Machines", indentW, indentH );
         indentH += cellH;
+        _drawMachineListTable(helper_machine_manager_data.machines.length, indentH );
         text( "Connected",              indentW + connected_offset,         indentH );
         text( "Busy Counter",           indentW + busy_counter_offset,      indentH );
         text( "Hostname",               indentW + hostname_offset,          indentH );
