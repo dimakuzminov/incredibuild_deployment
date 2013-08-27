@@ -14,6 +14,7 @@ INCREDIBUILD_BINARY_FILES="\
     /bin/XgWait \
     /bin/XgRegisterMe \
     /bin/XgConnectMe \
+    /bin/GridHelper \
     /usr/lib/libincredibuildintr.so"
 
 INCREDIBUILD_SYSTEM_SCRIPTS="\

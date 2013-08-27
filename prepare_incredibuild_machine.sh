@@ -191,7 +191,7 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/bin/GridServer"                               /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgConsole"                                /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgRegisterMe"                             /bin/           -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/bin/XgConnectMe"                              /bin/           -v 1>>$LOG 2>&1
+    cp "$PACKAGE_DIR/bin/GridHelper"                               /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgSubmit"                                 /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/XgWait"                                   /bin/           -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/usr/lib/libincredibuildintr.so"               /usr/lib/       -v 1>>$LOG 2>&1
