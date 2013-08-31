@@ -7,15 +7,26 @@ PACKAGE_ITEMS_LIST="\
     remove_incredibuild_package.sh \
     OS"
 
+function __wait() {
+    while [ -e /proc/$1 ]
+    do
+        echo -ne "."
+        sleep 1;
+    done
+    echo -ne " done"
+    echo ""
+}
+
 function create_package_name(){
     revision=$(git rev-parse HEAD)
     current=$(git describe --all --exact-match ${revision})
-    echo "Current tag or revision is [${revision}]"
+    echo "######   CURRENT REVISION IS [${revision}]"
     if [[ "$current" == *tags* ]]
     then
         suffix=${current:5}
+        echo "######   CURRENT VERSION IDENTIFIED [${suffix}]"
     else
-        echo "It is dirty release, please create tag"
+        echo "######   IT IS DIRTY RELEASE, PLEASE CREATE TAG"
         suffix=dirty_${revision}
     fi
     eval "$1=incredibuild_linux_$suffix.tar.bz2"
@@ -23,5 +34,6 @@ function create_package_name(){
 
 package_name=?
 create_package_name package_name
-echo "Generating [${package_name}]..."
-tar cjvf ${package_name} ${PACKAGE_ITEMS_LIST}
+echo -ne "######   Generating [${package_name}] ..."
+tar cjf ${package_name} ${PACKAGE_ITEMS_LIST} &
+__wait `jobs -p`
