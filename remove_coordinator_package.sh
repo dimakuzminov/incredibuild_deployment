@@ -2,7 +2,6 @@
 user=incredibuild
 script_name=$0
 PROJECT_DIR=$(pwd)
-SSH_ROOT_DIR=/root/.ssh
 WEB_DIR=/var/www/incredibuild
 LOG=${script_name}.log
 
@@ -22,10 +21,6 @@ INCREDIBUILD_COORDINATOR_SYSTEM_SCRIPTS="\
 
 INCREDIBUILD_COORDINATOR_SERVICES=" \
     incredibuild_coordinator"
-
-SSH_ADDONS="\
-    $SSH_ROOT_DIR/incredibuild.pem \
-    $SSH_ROOT_DIR/authorized_keys"
 
 function check_conditions() {
     if ! [ $(id -u) = 0 ];
@@ -71,28 +66,7 @@ function remove_scripts() {
         rm -vfr $i                      1>>$LOG 2>&1;
     done
     if ! [ -f /bin/GridServer ]; then
-        rm -vfr /etc/init.d/incredibuild_ssh_verification.sh    1>>$LOG 2>&1;
         rm -vfr /etc/init.d/clean_incredibuild_log.sh           1>>$LOG 2>&1;
-    fi
-}
-
-function remove_ssh_addon() {
-    echo "Removing ssh addon files:"
-    if [[ -e /bin/GridServer ]]; then
-        echo "ssh is not removing, it shared with GridServer"
-    else    
-        for i in $SSH_ADDONS;
-        do
-            echo "removing $i";
-            rm -vfr $i;
-        done
-    fi
-}
-
-function remove_user() {
-    if ! [ -f /bin/GridServer ]; then
-        echo "Removing user $user :"
-        userdel $user                                           1>>$LOG 2>&1;
     fi
 }
 
@@ -101,6 +75,4 @@ stop_services
 remove_web
 remove_binaries
 remove_scripts
-remove_ssh_addon
-remove_user
 echo "FINISHED"

@@ -5,7 +5,6 @@ script_name=$0
 coordinator_machine=$1
 http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
-SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
 MACHINE_ALREADY_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[-1\]"
 MACHINE_REGISTERED="Received response from GridCoordinator, messageType \[ffffffff\] return code \[0\]"
@@ -65,11 +64,8 @@ function print_version() {
 
 function install_ubuntu_packages() {
     print_log "Enter ${FUNCNAME[0]}"
-    echo -ne "[$OS_VERSION]: updating software list..."
-    apt-get update 1>>$LOG 2>&1 &
-    __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install 3rd party packages..."
-    apt-get install -y nfs-kernel-server cachefilesd libssh-dev boa ssh 1>>LOG 2>&1 &
+    apt-get install -y nfs-kernel-server cachefilesd boa 1>>LOG 2>&1 &
     __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
     service boa stop
@@ -103,27 +99,6 @@ function install_centos_packages() {
     service nfs start                         1>>$LOG 2>&1
     chkconfig nfs --add                       1>>$LOG 2>&1
     chkconfig  nfs  on --level 235            1>>$LOG 2>&1
-    ssh_file=3rd_side/libssh-${OS_VERSION}.x86_64.rpm
-    ssh_devel_file=3rd_side/libssh-devel-${OS_VERSION}.x86_64.rpm
-    if ! [ -f $ssh_file ]
-    then
-        echo "[$OS_VERSION]: cannot find $ssh_file"
-        exit
-    fi
-    echo -ne "[$OS_VERSION]: installing $ssh_file ..."
-    yum install -y $ssh_file                  1>>$LOG 2>&1 &
-    __wait `jobs -p`
-    if ! [ -f $ssh_devel_file ]
-    then
-        echo "[$OS_VERSION]: cannot find $ssh_devel_file"
-        exit
-    fi
-    echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
-    yum install -y $ssh_devel_file            1>>$LOG 2>&1 &
-    __wait `jobs -p`
-    chkconfig sshd --add                      1>>$LOG 2>&1
-    chkconfig  sshd  on --level 235           1>>$LOG 2>&1
-    service sshd start                        1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -144,34 +119,6 @@ function setup_nfs() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
-function set_user_env() {
-    print_log "Enter ${FUNCNAME[0]}"
-    if [ $(grep $user /etc/passwd) ];
-    then
-        print_log "user $user already exists, skipping";
-    else
-        echo "$password
-$password
-
-
-
-
-
-y
-" | adduser $user 1>>$LOG 2>&1;
-        adduser $user root 1>>$LOG 2>&1;
-        adduser $user sudo 1>>$LOG 2>&1;
-    fi
-    found=$(grep "$user" /etc/sudoers)
-    if [ -z "$found" ];
-    then
-        echo '%$user ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
-    else
-        print_log "user $user already sudo, skipping"
-    fi
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
 function copy_system_files() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "stop incredibuild service..."
@@ -185,7 +132,6 @@ function copy_system_files() {
     cp "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild"                      /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_helper"               /etc/init.d/    -v 1>>$LOG 2>&1
-    cp "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/init.d/incredibuild_virtualization.sh"    /etc/init.d/    -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/ -v 1>>$LOG 2>&1
     cp "$PACKAGE_DIR/bin/GridServer"                               /bin/           -v 1>>$LOG 2>&1
@@ -220,42 +166,8 @@ function copy_web_files() {
 function restart_3rd_side_services() {
     print_log "Enter ${FUNCNAME[0]}"
     service rsyslog stop    1>>$LOG 2>&1
+    sleep 1
     service rsyslog start   1>>$LOG 2>&1
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function prepare_ssh_ubuntu() {
-    print_log "Enter ${FUNCNAME[0]}"
-    mkdir -p $SSH_ROOT_DIR
-    rm -f $SSH_ROOT_DIR/known_hosts
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
-    chmod 0600 $PERM_FILE
-    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
-    chmod 0600 $PERM_FILE 
-    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function prepare_ssh_centos() {
-    print_log "Enter ${FUNCNAME[0]}"
-    mkdir -p $SSH_ROOT_DIR
-    rm -f $SSH_ROOT_DIR/known_hosts
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
-    chmod 0600 $PERM_FILE
-    cp $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem -v 1>>$LOG 2>&1
-    chmod 0600 $PERM_FILE
-    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
-    restorecon -R -v /root/.ssh 1>>$LOG 2>&1
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -304,7 +216,6 @@ function prepare_ubuntu_package() {
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh_ubuntu
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"
@@ -320,7 +231,6 @@ function prepare_centos_package() {
     copy_web_files
     restart_3rd_side_services
     print_log "configuring incredibuild..."
-    prepare_ssh_centos
     register_machine
     start_services
     print_log "Exit ${FUNCNAME[0]}"

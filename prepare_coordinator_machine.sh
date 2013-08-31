@@ -6,7 +6,6 @@ script_name=$0
 http_repository=/var/www/incredibuild
 PROJECT_DIR=$(pwd)
 DOMAN_SYSTEM_FILENAME=/etc/grid_server_domain.conf
-SSH_ROOT_DIR=/root/.ssh
 PERM_FILE=$PROJECT_DIR/linux.pem
 OS_DISTRIBUTION=$(lsb_release -is)
 OS_RELEASE=$(lsb_release -rs)
@@ -57,20 +56,18 @@ function print_version() {
 
 function install_ubuntu_packages() {
     print_log "Enter ${FUNCNAME[0]}"
-    echo -ne "[$OS_VERSION]: updating software list..."
-    apt-get update -y                   1>>$LOG 2>&1 &
-    __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install 3rd party packages..."
-    apt-get install -y libssh-dev ssh   1>>$LOG 2>&1 &
+    apt-get install -y  boa                   1>>LOG 2>&1 &
     __wait `jobs -p`
+    sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
+    service boa stop
+    sleep 1
+    service boa start
     print_log "Exit ${FUNCNAME[0]}"
 }
 
 function install_centos_packages() {
     print_log "Enter ${FUNCNAME[0]}"
-    echo -ne "[$OS_VERSION]: updating software list..."
-    yum  update -y                            1>>$LOG 2>&1 &
-    __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install Apache..."
     yum install -y httpd                      1>>$LOG 2>&1 &
     __wait `jobs -p`
@@ -80,55 +77,6 @@ function install_centos_packages() {
     service httpd start                       1>>$LOG 2>&1
     chkconfig httpd --add                     1>>$LOG 2>&1
     chkconfig  httpd  on --level 235          1>>$LOG 2>&1
-    ssh_file=3rd_side/libssh-${OS_VERSION}.x86_64.rpm
-    ssh_devel_file=3rd_side/libssh-devel-${OS_VERSION}.x86_64.rpm
-    if ! [ -f $ssh_file ]
-    then
-        echo "[$OS_VERSION]: cannot find $ssh_file"
-        exit
-    fi
-    echo -ne "[$OS_VERSION]: installing $ssh_file ..."
-    yum install -y $ssh_file                  1>>$LOG 2>&1 &
-    __wait `jobs -p`
-    if ! [ -f $ssh_devel_file ]
-    then
-        echo "[$OS_VERSION]: cannot find $ssh_devel_file"
-        exit
-    fi
-    echo -ne "[$OS_VERSION]: installing $ssh_devel_file ..."
-    yum install -y $ssh_devel_file            1>>$LOG 2>&1 &
-    __wait `jobs -p`
-    chkconfig sshd --add                      1>>$LOG 2>&1
-    chkconfig  sshd  on --level 235           1>>$LOG 2>&1
-    service sshd start                        1>>$LOG 2>&1
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function set_user_env() {
-    print_log "Enter ${FUNCNAME[0]}"
-    if [ $(grep $user /etc/passwd) ];
-    then
-        print_log "user $user already exists, skipping";
-    else
-        echo "$password
-$password
-
-
-
-
-
-y
-" | adduser $user 1>>$LOG 2>&1;
-        adduser $user root 1>>$LOG 2>&1;
-        adduser $user sudo 1>>$LOG 2>&1;
-    fi
-    found=$(grep "$user" /etc/sudoers)
-    if [ -z "$found" ];
-    then
-        echo '%$user ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers;
-    else
-        print_log "user $user already sudo, skipping"
-    fi
     print_log "Exit ${FUNCNAME[0]}"
 }
 
@@ -141,7 +89,6 @@ function copy_system_files() {
     mkdir -v /var/log/incredibuild                                                      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_coordinator"          /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/init.d/clean_incredibuild_log.sh"         /etc/init.d/      1>>$LOG 2>&1
-    cp -v "$PACKAGE_DIR/etc/init.d/incredibuild_ssh_verification.sh"  /etc/init.d/      1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/etc/rsyslog.d/30-incredibuild.conf"           /etc/rsyslog.d/   1>>$LOG 2>&1
     cp -v "$PACKAGE_DIR/bin/GridCoordinator"                          /bin/             1>>$LOG 2>&1
     ln -sf /etc/init.d/incredibuild_coordinator /etc/rc1.d/S98incredibuild_coordinator
@@ -174,42 +121,6 @@ function stop_3rd_side_services() {
     print_log "Exit ${FUNCNAME[0]}"
 }
 
-function create_ssh_root() {
-    print_log "Enter ${FUNCNAME[0]}"
-    mkdir -pv $SSH_ROOT_DIR  1>>$LOG 2>&1
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
-function create_config_file() {
-    print_log "Enter ${FUNCNAME[0]}"
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_rsa' > $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/%r/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/ids/%h/id_dsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_rsa' >> $SSH_ROOT_DIR/config
-    echo 'IdentityFile ~/.ssh/id_dsa' >> $SSH_ROOT_DIR/config
-    rm -vf $SSH_ROOT_DIR/known_hosts    1>>$LOG 2>&1
-    print_log "Enter ${FUNCNAME[0]}"
-}
-
-function create_domain_keys { 
-    print_log "Enter ${FUNCNAME[0]}"
-    chmod 0600 $PERM_FILE
-    cat $DOMAN_SYSTEM_FILENAME | while read LINE
-    do
-        host=$(echo $LINE | awk '{print $1;}')
-        mkdir -pv $SSH_ROOT_DIR/ids/$host                                   1>>$LOG 2>&1
-        cp -v $PERM_FILE $SSH_ROOT_DIR/ids/$host/id_rsa                     1>>$LOG 2>&1
-        chmod 0600 $SSH_ROOT_DIR/ids/$host/id_rsa
-        ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/ids/$host/id_rsa.pub
-    done
-    cp -v $PERM_FILE $SSH_ROOT_DIR/incredibuild.pem                         1>>$LOG 2>&1
-    chmod 0600 $PERM_FILE 
-    mkdir -p $SSH_ROOT_DIR                                                  1>>$LOG 2>&1
-    ssh-keygen -y -f $PERM_FILE > $SSH_ROOT_DIR/authorized_keys
-    print_log "Exit ${FUNCNAME[0]}"
-}
-
 function start_services() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "start 3rd side part services..."
@@ -223,14 +134,10 @@ function prepare_ubuntu_package() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "configuring machine..."
     install_ubuntu_packages
-    set_user_env
     copy_system_files
     copy_web_files
     stop_3rd_side_services
     print_log "configuring incredibuild..."
-    create_ssh_root
-    create_config_file
-    create_domain_keys
     start_services
 }
 
@@ -238,14 +145,10 @@ function prepare_centos_package() {
     print_log "Enter ${FUNCNAME[0]}"
     print_log "configuring machine..."
     install_centos_packages
-    set_user_env
     copy_system_files
     copy_web_files
     stop_3rd_side_services
     print_log "configuring incredibuild..."
-    create_ssh_root
-    create_config_file
-    create_domain_keys
     start_services
 }
 
