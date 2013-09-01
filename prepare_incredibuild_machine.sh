@@ -76,9 +76,6 @@ function install_ubuntu_packages() {
 
 function install_centos_packages() {
     print_log "Enter ${FUNCNAME[0]}"
-    echo -ne "[$OS_VERSION]: updating software list..."
-    yum  update -y                            1>>$LOG 2>&1 &
-    __wait `jobs -p`
     echo -ne "[$OS_VERSION]: install Apache..."
     yum install -y httpd                      1>>$LOG 2>&1 &
     __wait `jobs -p`
