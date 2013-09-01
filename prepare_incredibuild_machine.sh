@@ -69,6 +69,7 @@ function install_ubuntu_packages() {
     __wait `jobs -p`
     sed "s;\<Port 80\>;Port 8080;" -i /etc/boa/boa.conf
     service boa stop
+    sleep 1
     service boa start
     print_log "Exit ${FUNCNAME[0]}"
 }
@@ -211,7 +212,6 @@ function prepare_ubuntu_package() {
     install_ubuntu_packages
     setup_nfs
     enable_cachefs
-    set_user_env
     copy_system_files
     copy_web_files
     restart_3rd_side_services
@@ -226,7 +226,6 @@ function prepare_centos_package() {
     print_log "configuring machine..."
     install_centos_packages
     setup_nfs
-    set_user_env
     copy_system_files
     copy_web_files
     restart_3rd_side_services
