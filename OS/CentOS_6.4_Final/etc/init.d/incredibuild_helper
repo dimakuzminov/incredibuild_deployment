@@ -40,15 +40,9 @@ case "$1" in
   status)
 	status ${NAME}
 	;;
-  restart)
-	restart
-        ;;
-  condrestart)
-	[ -f /var/lock/subsys/${NAME} ] && restart
-        ;;
   *)
 	N=/etc/init.d/$NAME
-	echo $"Usage: $N {start|stop|status|restart|condrestart}"
+	echo $"Usage: $N {start|stop|status}"
 	exit 1
 	;;
 esac
