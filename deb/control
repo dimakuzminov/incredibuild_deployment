@@ -1,0 +1,9 @@
+Package: incredibuild
+Version: 1.1-1
+Section: base
+Priority: optional
+Architecture: any
+Maintainer: Chr. Clemens Lee <clemens@kclee.de>
+Description: Linux system information
+ This script provides a broad overview of different
+ system aspects.

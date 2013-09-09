@@ -1,0 +1,5 @@
+incredibuild (1.2-1)
+
+  * Made Debian package lintian clean.
+
+ -- Chr. Clemens Lee <clemens@kclee.de>  2002-12-13
