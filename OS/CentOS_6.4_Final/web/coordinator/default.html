@@ -55,6 +55,8 @@ void setup()
     }
     size(width, height);
     timestamp = 0;
+    idle_counter = 0;
+    idle_trigger = 5;
 }
 
 function _timeFormat(time)
@@ -82,7 +84,7 @@ function _setColor(_green, _red, _blue, _alpha)
 
 function _cleanBackground()
 {
-    _setColor(255,255,255);
+    _setColor(200,200,200);
     rect(0, 0, width, height);
     _setColor(0,0,0);
 }
@@ -142,20 +144,27 @@ void draw()
     });
     var manager_data = eval("("+manager_json.responseText+")");
     width = indentW + cellW * 10;
-    var newHeight = indentH + cellH * helper_machine_manager_data.machines.length + cellH * 2 +
-                              cellH * manager_data.build_machines.length + cellH * 2;
+    var newHeight = indentHStart + 2*cellH +
+    cellH + cellH + (cellH * helper_machine_manager_data.machines.length) +
+    cellH +
+    cellH + (cellH * manager_data.build_machines.length) +
+    cellH * 2;
     if( newHeight > height ) {
         height = newHeight;
         size(width, height);
     }
     _cleanBackground();
-    text( "Service alive time["+_timeFormat(timestamp)+"]", indentW, indentH );
+    text( "Coordinator ["+helper_machine_manager_data.version+"], service alive time["+_timeFormat(helper_machine_manager_data.timestamp)+"]", indentW, indentH );
     indentH += 2*cellH;
     if (helper_machine_manager_data.timestamp == timestamp) {
-        _setColor( 255, 0, 0 );
-        text( "Coordinator is not running, please start service and refresh this page", indentW, indentH );
-        return;
+        idle_counter++;
+        if (idle_counter == idle_trigger) {
+            _setColor( 255, 0, 0 );
+            text( "Coordinator is not running, please start service and refresh this page", indentW, indentH );
+            return;
+        }
     }
+    idle_counter=0;
     timestamp = helper_machine_manager_data.timestamp;
     if (helper_machine_manager_data) {
         text( "List of Helper Machines", indentW, indentH );

@@ -4,6 +4,7 @@
         <Tool RequestedCores="50" />
         <Tool DummyMode="false" />
         <Tool MonitorEnable="false" />
+        <Tool LocalSlotPriority="Low" />
         <Tool Filename="sh" AllowIntercept="true" />
         <Tool Filename="bash" AllowIntercept="true" />
         <Tool Filename="waf" AllowIntercept="true" />
